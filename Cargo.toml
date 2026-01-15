@@ -1,5 +1,5 @@
 [package]
-name = "pokedex"
+name = "pokedex_cli_rs"
 version = "0.1.0"
 edition = "2024"
 description = "a little tool that behaves like the pokedex"
