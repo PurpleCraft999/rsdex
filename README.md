@@ -9,7 +9,4 @@ to install on windows and
 to install on linux
 
 
-<h2>usage</h2>
-
-windows
 
