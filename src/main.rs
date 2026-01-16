@@ -52,18 +52,16 @@ enum SearchValue {
     
     Name { name: String },
     Type {
-        #[arg(value_enum)]
         ptype: PokemonType,
     },
     Color {
-        #[arg(value_enum)]
         color: PokedexColor,
     },
 }
 impl SearchValue {
     fn parser(input: &str) -> Result<Self, String> {
         if let Ok(dex_num) = input.parse::<u16>() {
-            if 1 < dex_num && dex_num <= MAX_POKEDEX_NUM {
+            if 1 <= dex_num && dex_num <= MAX_POKEDEX_NUM {
                 return Ok(SearchValue::Dex { dex_num });
             } else {
                 return Err(format!(
@@ -102,5 +100,19 @@ impl SearchValue {
         } else {
              Err("sorry we couldnt find anything".into())
         }
+    }
+}
+
+
+#[test]
+fn test_dex_numbers(){
+    let pokedex =PokeDex::new().unwrap();
+    for dex_num in 1..=MAX_POKEDEX_NUM{
+        let args = ["rsdex".into(),dex_num.to_string()];
+        let args = Args::parse_from(args);
+        match args.search_value{
+            SearchValue::Dex { dex_num }=>pokedex.find_by_natinal_dex_number(dex_num),
+            _=>panic!("idk man:{dex_num}")
+        };
     }
 }
