@@ -111,7 +111,7 @@ fn test_dex_numbers(){
         let args = ["rsdex".into(),dex_num.to_string()];
         let args = Args::parse_from(args);
         match args.search_value{
-            SearchValue::Dex { dex_num }=>pokedex.find_by_natinal_dex_number(dex_num),
+            SearchValue::Dex { dex_num }=>pokedex.find_by_natinal_dex_number(dex_num).unwrap(),
             _=>panic!("idk man:{dex_num}")
         };
     }
