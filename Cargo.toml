@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "a little tool that behaves like the pokedex"
 license = "MIT"
-repository = "https://github.com/PurpleCraft999/pokedex"
+repository = "https://github.com/PurpleCraft999/rsdex"
 
 
 [dependencies]
