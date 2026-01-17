@@ -1,4 +1,4 @@
-use crate::pokemon::{PokedexColor, Pokemon, PokemonStat, PokemonType};
+use crate::pokemon::{PokedexColor, Pokemon,  PokemonType, StatWithOrder};
 use memmap2::Mmap;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 use std::{
@@ -106,14 +106,14 @@ impl PokeDex {
     pub fn find_by_natinal_dex_number(&self, dex_num: u16) -> SingleSearchReturn {
         self.find_one_pokemon(|pokemon| pokemon.get_dex_number() == dex_num)
     }
-    pub fn find_by_name(&self, name: String) -> SingleSearchReturn {
-        self.find_one_pokemon(|pkmn| pkmn.get_name() == &name)
+    pub fn find_by_name(&self, name: &String) -> SingleSearchReturn {
+        self.find_one_pokemon(|pkmn| pkmn.get_name() == name)
     }
     pub fn find_by_color(&self, color: PokedexColor) -> MultiSearchReturn {
         self.find_many_pokemon(|pkmn| pkmn.get_color() == color)
     }
-    pub fn find_by_stat(&self,stat:PokemonStat)->MultiSearchReturn{
-        self.find_many_pokemon(|pokemon|pokemon.stat_matches(&stat))
+    pub fn find_by_stat(&self, stat: &StatWithOrder) -> MultiSearchReturn {
+        self.find_many_pokemon(|pokemon| pokemon.stat_matches(stat))
     }
 }
 

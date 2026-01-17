@@ -1,4 +1,4 @@
-use std::{fmt::Display, str::FromStr};
+use std::{cmp::Ordering, fmt::Display, str::FromStr};
 
 use serde::Deserialize;
 use strsim::damerau_levenshtein;
@@ -68,12 +68,13 @@ pub struct Pokemon {
 
     color: PokedexColor,
     genus: String,
-    hp:u8,
-    attack:u8,
-    defence:u8,
-    special_attack:u8,
-    special_defence:u8,
-    speed:u8,
+
+    hp: u8,
+    attack: u8,
+    defence: u8,
+    special_attack: u8,
+    special_defence: u8,
+    speed: u8,
 }
 impl Display for Pokemon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -86,6 +87,12 @@ impl Pokemon {
         println!("  the {}", self.genus);
         println!("  {} and {} type", self.type1, self.type2);
         println!("  this pokemon is {}", self.color);
+        println!("hp:{}",self.hp);
+        println!("attack:{}",self.attack);
+        println!("defence:{}",self.defence);
+        println!("special attack:{}",self.special_attack);
+        println!("special defence:{}",self.special_defence);
+        println!("speed:{}",self.speed);
     }
     pub fn print(&self, is_detailed: bool) {
         match is_detailed {
@@ -108,14 +115,15 @@ impl Pokemon {
     pub fn get_color(&self) -> PokedexColor {
         self.color
     }
-    pub fn stat_matches(&self,stat:&PokemonStat)->bool{
-        match stat{
-            &PokemonStat::Attack(stat)=>stat==self.attack,
-            &PokemonStat::Defence(stat)=>stat==self.defence,
-            &PokemonStat::Hp(stat)=>stat==self.hp,
-            &PokemonStat::SpecialAttack(stat)=>stat==self.special_attack,
-            &PokemonStat::SpecialDefence(stat)=>stat==self.special_defence,
-            &PokemonStat::Speed(stat)=>stat==self.speed,
+    pub fn stat_matches(&self, stat: &StatWithOrder) -> bool {
+        let order  = stat.operation;
+        match stat.stat {
+            PokemonStat::Hp(stat2) => stat_matches_ordering(order, self.hp, stat2),
+            PokemonStat::Attack(stat2) => stat_matches_ordering(order, self.attack, stat2),
+            PokemonStat::Defence(stat2) => stat_matches_ordering(order, self.defence, stat2),
+            PokemonStat::SpecialAttack(stat2) => stat_matches_ordering(order, self.special_attack, stat2),
+            PokemonStat::SpecialDefence(stat2) => stat_matches_ordering(order, self.special_defence, stat2),
+            PokemonStat::Speed(stat2) => stat_matches_ordering(order, self.speed, stat2),
         }
     }
 }
@@ -127,32 +135,82 @@ where
     let opt = Option::deserialize(deserializer)?;
     Ok(opt.unwrap_or(PokemonType::None))
 }
-#[derive(Clone,Display)]
-pub enum PokemonStat{
+
+#[derive(Clone)]
+pub struct StatWithOrder{
+    pub stat:PokemonStat,
+    pub operation:Ordering
+}
+impl StatWithOrder {
+    // fn compare_stat(&self,other:u8){
+    //     match *self.stat {
+    //         PokemonStat::Attack(stat) => stat == self.attack,
+    //         PokemonStat::Defence(stat) => stat == self.defence,
+    //         PokemonStat::Hp(stat) => stat == self.hp,
+    //         PokemonStat::SpecialAttack(stat) => stat == self.special_attack,
+    //         PokemonStat::SpecialDefence(stat) => stat == self.special_defence,
+    //         PokemonStat::Speed(stat) => stat == self.speed,
+    //     }
+    // }
+}
+fn stat_matches_ordering(order:Ordering,stat1:u8,stat2:u8)->bool{
+    match order{
+        Ordering::Equal=>stat1.cmp(&stat2).is_eq(),
+        Ordering::Greater=>stat1.cmp(&stat2).is_ge(),
+        Ordering::Less=>stat1.cmp(&stat2).is_le()
+    }
+}
+impl FromStr for StatWithOrder {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let operation = if s.contains('l'){
+                Ordering::Less
+            } else if s.contains('g'){
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            };
+        let stat = PokemonStat::from_str(s)?;
+        Ok(Self { stat, operation })    
+    }
+}
+
+
+
+#[derive(Clone, Display)]
+pub enum PokemonStat {
     Hp(u8),
     Attack(u8),
     Defence(u8),
     SpecialAttack(u8),
     SpecialDefence(u8),
-    Speed(u8)
+    Speed(u8),
 }
 
 impl FromStr for PokemonStat {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s{
-            hp if s.contains("hp")=>Ok(Self::Hp(str_to_u8(hp))),
-            attack if s.contains('a')=>Ok(Self::Attack(str_to_u8(attack))),
-            defence if s.contains('d')=>Ok(Self::Defence(str_to_u8(defence))),
-            special_attack if s.contains("sa")=>Ok(Self::SpecialAttack(str_to_u8(special_attack))),
-            special_defence if s.contains("sd")=>Ok(Self::SpecialDefence(str_to_u8(special_defence))),
-            speed if s.contains('s')=>Ok(Self::Speed(str_to_u8(speed))),
-            _=>Err("could not parse stat from str".into())
+        match s {
+            hp if s.contains("hp") => Ok(Self::Hp(str_to_u8(hp))),
+            attack if s.contains('a') => Ok(Self::Attack(str_to_u8(attack))),
+            defence if s.contains('d') => Ok(Self::Defence(str_to_u8(defence))),
+            special_attack if s.contains("sa") => {
+                Ok(Self::SpecialAttack(str_to_u8(special_attack)))
+            }
+            special_defence if s.contains("sd") => {
+                Ok(Self::SpecialDefence(str_to_u8(special_defence)))
+            }
+            speed if s.contains('s') => Ok(Self::Speed(str_to_u8(speed))),
+            _ => Err("could not parse stat from str".into()),
         }
     }
 }
-fn str_to_u8(s:&str)->u8{
-    s.chars().filter(|c|c.is_ascii_digit()).collect::<String>().parse().expect("somehow this went wrong")
+fn str_to_u8(s: &str) -> u8 {
+    s.chars()
+        .filter(|c| c.is_ascii_digit())
+        .collect::<String>()
+        .parse()
+        .expect("somehow str_to_u8 went wrong")
 }
 
 pub static POKEMON_NAME_ARRAY: [&str; 1025] = [
