@@ -47,8 +47,14 @@ To filter by stat you append the stat you want to the end such as
 `rsdex 20sd` for Special Defence
 `rsdex 20s` for Speed
 
+you can also do get stats with ≤ or ≥ the stat value by adding `l` or `g` to the begaining
+
+`rsdex g100hp` returns all pokemon with ≥ 100 hp
+
+`rsdex l50s` returns all pokemon with ≤ 50 speed
+
 
 <h2>Flags</h2>
-if you add --detailed to the end of a search you'll get a more detailed summary
+if you add --detailed or -d to the end of a search you'll get a more detailed summary
 Example
 <code>rsdex 1 --detailed </code>
