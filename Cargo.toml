@@ -1,11 +1,11 @@
 [package]
 name = "rsdex"
-version = "0.1.25"
+version = "0.1.30"
 edition = "2024"
 description = "a little tool that behaves as a pokedex"
 license = "MIT"
 repository = "https://github.com/PurpleCraft999/rsdex"
-
+authors = ["PurpleCraft999"]
 
 [dependencies]
 rayon = "1.11.0"

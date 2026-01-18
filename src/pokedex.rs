@@ -1,9 +1,13 @@
-use crate::pokemon::{PokedexColor, Pokemon, PokemonType, StatWithOrder};
+use crate::{
+    WriteMode,
+    pokemon::{PokedexColor, Pokemon, PokemonType, StatWithOrder},
+};
 use memmap2::Mmap;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 use std::{
     // fs::File,
-    io::BufRead,
+    fs::File,
+    io::{self, BufRead, BufWriter, Write},
 };
 
 pub type SingleSearchReturn = Option<Pokemon>;
@@ -13,25 +17,84 @@ pub enum PokedexSearchResualt {
     Multi(MultiSearchReturn),
 }
 impl PokedexSearchResualt {
-    pub fn print_data(&self, detail_level: u8) {
+    pub fn to_vec(&self) -> Vec<Pokemon> {
         match self {
             PokedexSearchResualt::Single(single) => match single {
-                Some(pkmn) => pkmn.print(detail_level),
-                None => println!("sorry we couldnt find any thing"),
+                Some(pkmn) => Vec::from([pkmn.clone()]),
+                None => Vec::new(),
             },
             PokedexSearchResualt::Multi(vec) => {
-                for pkmn in vec {
-                    pkmn.print(detail_level)
-                }
-                if vec.is_empty() {
-                    println!("sorry we couldnt find any thing")
-                }
+                vec.clone()
+                // for pkmn in vec {
+                //     pkmn.print(detail_level)
+                // }
+                // if vec.is_empty() {
+                //     println!("sorry we couldnt find any thing")
+                // }
             }
         }
     }
-    // pub fn get_similar_words(&self){
-    //     ma
-    // }
+    pub fn print_data(&self, detail_level: u8) {
+        let vec = self.to_vec();
+        if vec.is_empty() {
+            println!("sorry we couldnt find any thing");
+            return;
+        }
+        for pokemon in self.to_vec() {
+            pokemon.print(detail_level);
+        }
+    }
+    pub fn write_data_to_file(
+        &self,
+        fp: String,
+        detail_level: u8,
+        write_mode: WriteMode,
+    ) -> io::Result<()> {
+        println!("writing to {}", fp);
+
+        let file = File::create(fp)
+            .unwrap_or_else(|e| panic!("sorry rsdex could not create your file because {e}"));
+
+        // let pokemon:&[u8] = &self.to_vec().iter().map(|pkmn|pkmn.get_data_as_string(detail_level)).map(|s|s.as_bytes()).flatten().copied().collect::<Vec<u8>>();
+
+        let mut writer = BufWriter::new(file);
+        let vec = self.to_vec();
+
+        match write_mode {
+            WriteMode::Json => {
+                writer.write_all("[".as_bytes())?;
+                for (i, data) in vec.iter().enumerate() {
+                    writer.write_all(
+                        serde_json::to_string_pretty(&data.get_data_as_string(detail_level))?
+                            .as_bytes(),
+                    )?;
+                    if i < vec.len() - 1 {
+                        writer.write_all(",\n".as_bytes())?;
+                    }
+                }
+                writer.write_all("\n]".as_bytes())?;
+            }
+
+            WriteMode::Jsonl => {
+                for data in vec {
+                    writer.write_all("{".as_bytes())?;
+                    writer.write_all(
+                        serde_json::to_string_pretty(&data.get_data_as_string(detail_level))?
+                            .as_bytes(),
+                    )?;
+                    writer.write_all("}\n".as_bytes())?;
+                    // if i<vec.len()-1{
+                    // writer.write_all(",\n".as_bytes())?;
+                    // }
+                }
+                // writer.seek_relative(-1)
+            }
+        }
+        // writer.write_all(serde_json::to_string(&self.to_vec()).expect("this failed").as_bytes()).unwrap();
+
+        // BufWriter::new(file).write_all(pokemon);
+        Ok(())
+    }
 }
 impl From<SingleSearchReturn> for PokedexSearchResualt {
     fn from(value: SingleSearchReturn) -> Self {

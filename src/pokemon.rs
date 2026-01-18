@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, fmt::Display, str::FromStr};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use strsim::damerau_levenshtein;
 use strum::{Display, EnumString, VariantArray};
 
@@ -8,7 +8,7 @@ use crate::pokedex::MAX_POKEDEX_NUM;
 
 // use crate::pokedex::PokedexColor;
 
-#[derive(Deserialize, PartialEq, Clone, Copy, EnumString, Display, VariantArray)]
+#[derive(Deserialize, PartialEq, Clone, Copy, EnumString, Display, VariantArray, Serialize)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum PokemonType {
@@ -32,7 +32,7 @@ pub enum PokemonType {
     Fairy,
     None,
 }
-#[derive(Deserialize, Clone, Copy, PartialEq, EnumString, Display, VariantArray)]
+#[derive(Deserialize, Clone, Copy, PartialEq, EnumString, Display, VariantArray, Serialize)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum PokedexColor {
@@ -60,7 +60,7 @@ pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<Strin
         .collect()
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Serialize)]
 pub struct Pokemon {
     name: String,
     national_dex_number: u16,
@@ -80,33 +80,42 @@ pub struct Pokemon {
 }
 impl Display for Pokemon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "No.{}    {}", self.national_dex_number, self.name)
+        write!(f, "{}", self.get_data_as_string(0))
     }
 }
 impl Pokemon {
-    pub fn print(&self, detail_level: u8) {
-        println!("{self}");
+    pub fn get_data_as_string(&self, detail_level: u8) -> String {
+        let mut data_string = String::new();
+
+        data_string
+            .push_str(format!("No.{}    {}\n", self.national_dex_number, self.name).as_str());
         if detail_level >= 1 {
-            println!("the {}", self.genus);
+            data_string.push_str(format!("the {}\n", self.genus).as_str());
             //this section prints the types
-            print!("{}", self.type1);
+            data_string.push_str(format!("{}", self.type1).as_str());
             if self.type2 != PokemonType::None {
-                print!(" and {}", self.type2)
+                data_string.push_str(format!(" and {}", self.type2).as_str())
             }
-            println!(" type");
+            data_string.push_str(" type\n");
         }
 
         if detail_level >= 2 {
-            println!("  this pokemon is {}", self.color);
+            data_string.push_str(format!("this pokemon is {}\n", self.color).as_str());
         }
         if detail_level >= 4 {
-            println!("hp:{}", self.hp);
-            println!("attack:{}", self.attack);
-            println!("defence:{}", self.defence);
-            println!("special attack:{}", self.special_attack);
-            println!("special defence:{}", self.special_defence);
-            println!("speed:{}", self.speed);
+            data_string.push_str(format!("hp:{}\n", self.hp).as_str());
+            data_string.push_str(format!("attack:{}\n", self.attack).as_str());
+            data_string.push_str(format!("defence:{}\n", self.defence).as_str());
+            data_string.push_str(format!("special attack:{}\n", self.special_attack).as_str());
+            data_string.push_str(format!("special defence:{}\n", self.special_defence).as_str());
+            data_string.push_str(format!("speed:{}\n", self.speed).as_str());
         }
+        data_string
+    }
+
+    pub fn print(&self, detail_level: u8) {
+        print!("{}", self.get_data_as_string(detail_level));
+        // println!("print data")
     }
     pub fn get_name(&self) -> &String {
         &self.name
@@ -190,7 +199,7 @@ pub enum PokemonStat {
 impl FromStr for PokemonStat {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if !s.contains(['1','2','3','4','5','6','7','8','9']){
+        if !s.contains(['1', '2', '3', '4', '5', '6', '7', '8', '9']) {
             return Err("no number found".into());
         }
 

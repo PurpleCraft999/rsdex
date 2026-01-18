@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use clap::{Parser, value_parser};
+use clap::{Parser, ValueEnum, builder::PossibleValue, value_parser};
 
 // use serde::Deserialize;
 
@@ -16,7 +16,7 @@ use crate::{
 };
 fn main() {
     let args = Args::parse();
-
+    let detail_level = args.detailed;
     let pokedex = match PokeDex::new() {
         Ok(dex) => dex,
         Err(e) => panic!("could not run: {e}"),
@@ -30,15 +30,18 @@ fn main() {
         SearchValue::Color { color } => pokedex.find_by_color(color).into(),
         SearchValue::Stat { stat } => pokedex.find_by_stat(&stat).into(),
     };
-    pokemon.print_data(args.detailed);
+    if args.write_to_file != DEFAULT_FP {
+        pokemon
+            .write_data_to_file(args.write_to_file, detail_level, args.write_mode)
+            .expect("something went wrong while saving your file");
+    } else {
+        pokemon.print_data(detail_level);
+    }
 }
 
 ///rsdex is a cli that allow you to locally search for pokemon like the pokedex would allow you to.
 ///
-///
-///
-///
-///
+///a thanks to PokéApi for the data
 #[derive(clap::Parser)]
 #[command(version)]
 struct Args {
@@ -47,6 +50,8 @@ struct Args {
     /// to get dex number a simple number will work
     ///
     /// for name entering any pokemon name will work
+    ///
+    /// for species with a space in their name use a `-`
     ///
     /// for color typing a pokemons color will work
     ///
@@ -69,8 +74,13 @@ struct Args {
     ///depending on the value you give it, it will provide you with more data
     #[arg(long, short,value_parser = value_parser!(u8).range(0..=5),default_value_t=0)]
     detailed: u8,
+    ///will write to the given path with the specified data level in the format specified by WRITE_MODE
+    #[arg(long,default_value_t=String::from(DEFAULT_FP))]
+    write_to_file: String,
+    #[arg(long,requires = "write_to_file",default_value_t=WriteMode::Json)]
+    write_mode: WriteMode,
 }
-
+const DEFAULT_FP: &str = "_";
 #[derive(clap::Subcommand, Clone, Display)]
 ///test
 enum SearchValue {
@@ -108,13 +118,10 @@ impl SearchValue {
                 ));
             }
         } else if let Ok(ptype) = PokemonType::from_str(input) {
-            // println!("is type");
             return Ok(Self::Type { ptype });
         } else if let Ok(color) = PokedexColor::from_str(input) {
             return Ok(SearchValue::Color { color });
         } else if let Ok(stat) = StatWithOrder::from_str(input) {
-            // let stat = StatWithOrder { stat, operation };
-            // println!("hello stat");
             return Ok(SearchValue::Stat { stat });
         }
         Err(Self::parsing_error(input))
@@ -138,7 +145,22 @@ impl SearchValue {
         }
     }
 }
-
+#[derive(Clone, Display)]
+pub enum WriteMode {
+    Json,
+    Jsonl,
+}
+impl ValueEnum for WriteMode {
+    fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
+        match self {
+            Self::Json => Some(PossibleValue::new("json").alias("Json")),
+            Self::Jsonl => Some(PossibleValue::new("jsonl").alias("Jsonl")),
+        }
+    }
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Json, Self::Jsonl]
+    }
+}
 #[test]
 fn test_nat_dex_numbers() {
     let pokedex = PokeDex::new().unwrap();
