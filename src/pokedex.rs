@@ -4,6 +4,7 @@ use crate::{
 };
 use memmap2::Mmap;
 use rayon::iter::{ParallelBridge, ParallelIterator};
+use serde::Deserialize;
 use std::{
     // fs::File,
     fs::File,
@@ -114,6 +115,7 @@ impl From<MultiSearchReturn> for PokedexSearchResualt {
     }
 }
 
+pub const POKEDEX_DATA: &[u8; 236014] = include_bytes!("../pokedex.jsonl");
 pub struct PokeDex {
     mmap: Mmap,
 }
@@ -121,9 +123,11 @@ impl PokeDex {
     pub fn new() -> Result<Self, std::io::Error> {
         // File::(include_str!("../pokedex.jsonl"));
         // let file = File::open("pokedex.jsonl").unwrap();
-        let data = include_bytes!("../pokedex.jsonl");
-        let mut mmap = memmap2::MmapOptions::new().len(data.len()).map_anon()?;
-        mmap.copy_from_slice(data);
+        // let data = include_bytes!("../pokedex.jsonl");
+        let mut mmap = memmap2::MmapOptions::new()
+            .len(POKEDEX_DATA.len())
+            .map_anon()?;
+        mmap.copy_from_slice(POKEDEX_DATA);
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }
@@ -180,4 +184,31 @@ impl PokeDex {
     }
 }
 
+///this only exist to not have to deseirialze the entire  `Pokemon` struct when parsing
+#[derive(Debug, Deserialize)]
+pub struct PokemonName {
+    pub name: String,
+}
+// impl<'s> Deref for PokemonName<'s> {
+//     type Target = str;
+//     fn deref(&self) -> &Self::Target {
+//                 self.name
+//     }
+// }
+
 pub const MAX_POKEDEX_NUM: u16 = 1025;
+// #[macro_export]
+macro_rules! make_pokemon_name_array {
+    () => {{
+        use std::io::BufRead;
+        use $crate::pokedex::{POKEDEX_DATA, PokemonName};
+        let mut vec = Vec::with_capacity(MAX_POKEDEX_NUM as usize);
+        for line in POKEDEX_DATA.lines() {
+            let line = line.expect("failed to read line");
+            let name = serde_json::from_str::<PokemonName>(&line)
+                .expect("could not parse pokemon from line");
+            vec.push(name.name);
+        }
+        vec.try_into().expect("")
+    }};
+}

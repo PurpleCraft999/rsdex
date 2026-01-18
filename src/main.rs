@@ -3,7 +3,7 @@ use std::str::FromStr;
 use clap::{Parser, ValueEnum, builder::PossibleValue, value_parser};
 
 // use serde::Deserialize;
-
+#[macro_use]
 mod pokedex;
 mod pokemon;
 use pokedex::PokeDex;
@@ -12,7 +12,7 @@ use strum::{Display, VariantArray};
 
 use crate::{
     pokedex::{MAX_POKEDEX_NUM, PokedexSearchResualt},
-    pokemon::{POKEMON_NAME_ARRAY, StatWithOrder, compute_similarity},
+    pokemon::{StatWithOrder, compute_similarity},
 };
 fn main() {
     let args = Args::parse();
@@ -104,7 +104,8 @@ enum SearchValue {
 }
 impl SearchValue {
     fn parser(input: &str) -> Result<Self, String> {
-        for name in &POKEMON_NAME_ARRAY {
+        let pokemon_names: [String; MAX_POKEDEX_NUM as usize] = make_pokemon_name_array!();
+        for name in &pokemon_names {
             if input == *name {
                 return Ok(Self::Name { name: input.into() });
             }
@@ -124,11 +125,11 @@ impl SearchValue {
         } else if let Ok(stat) = StatWithOrder::from_str(input) {
             return Ok(SearchValue::Stat { stat });
         }
-        Err(Self::parsing_error(input))
+        Err(Self::parsing_error(input, pokemon_names))
     }
-    fn parsing_error(input: &str) -> String {
+    fn parsing_error(input: &str, pokemon_names: [String; MAX_POKEDEX_NUM as usize]) -> String {
         let mut err_vec = Vec::new();
-        err_vec.append(&mut compute_similarity(input, &POKEMON_NAME_ARRAY));
+        err_vec.append(&mut compute_similarity(input, &pokemon_names));
         err_vec.append(&mut compute_similarity(input, PokedexColor::VARIANTS));
         err_vec.append(&mut compute_similarity(input, PokemonType::VARIANTS));
         let mut did_you_mean_str = String::with_capacity(err_vec.len());
@@ -177,12 +178,13 @@ fn test_nat_dex_numbers() {
 #[test]
 fn test_pokemon_names() {
     let pokedex = PokeDex::new().unwrap();
-    for name in POKEMON_NAME_ARRAY {
-        let args = ["rsdex".into(), name];
+    let names: [String; MAX_POKEDEX_NUM as usize] = make_pokemon_name_array!();
+    for name in names {
+        let args = ["rsdex", &name];
         let args = Args::parse_from(args);
         match args.search_value {
             SearchValue::Name { name } => pokedex.find_by_name(&name).unwrap(),
-            e => panic!("name test failed: name:{name},value:{e}"),
+            e => panic!("name test failed: name:{},value:{e}", &*name),
         };
     }
 }
