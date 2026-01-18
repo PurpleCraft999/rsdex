@@ -9,6 +9,7 @@ use std::{
     fs::File,
     io::{self, BufRead, BufWriter, Write},
 };
+use miniserde::json;
 
 pub type SingleSearchReturn = Option<Pokemon>;
 pub type MultiSearchReturn = Vec<Pokemon>;
@@ -65,7 +66,7 @@ impl PokedexSearchResualt {
                 writer.write_all("[".as_bytes())?;
                 for (i, data) in vec.iter().enumerate() {
                     writer.write_all(
-                        serde_json::to_string_pretty(&data.get_data_as_string(detail_level))?
+                        json::to_string(&data.get_data_as_string(detail_level))
                             .as_bytes(),
                     )?;
                     if i < vec.len() - 1 {
@@ -79,7 +80,7 @@ impl PokedexSearchResualt {
                 for data in vec {
                     writer.write_all("{".as_bytes())?;
                     writer.write_all(
-                        serde_json::to_string_pretty(&data.get_data_as_string(detail_level))?
+                        json::to_string(&data.get_data_as_string(detail_level))
                             .as_bytes(),
                     )?;
                     writer.write_all("}\n".as_bytes())?;
@@ -114,6 +115,9 @@ impl From<MultiSearchReturn> for PokedexSearchResualt {
     }
 }
 
+pub const POKEDEX_DATA:&[u8;236014] = include_bytes!("../pokedex.jsonl");
+
+
 pub struct PokeDex {
     mmap: Mmap,
 }
@@ -121,9 +125,9 @@ impl PokeDex {
     pub fn new() -> Result<Self, std::io::Error> {
         // File::(include_str!("../pokedex.jsonl"));
         // let file = File::open("pokedex.jsonl").unwrap();
-        let data = include_bytes!("../pokedex.jsonl");
-        let mut mmap = memmap2::MmapOptions::new().len(data.len()).map_anon()?;
-        mmap.copy_from_slice(data);
+        // let data = ;
+        let mut mmap = memmap2::MmapOptions::new().len(POKEDEX_DATA.len()).map_anon()?;
+        mmap.copy_from_slice(POKEDEX_DATA);
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }
@@ -143,7 +147,7 @@ impl PokeDex {
             .lines()
             .map_while(|item| item.ok())
             .par_bridge()
-            .map(|line| serde_json::from_str::<Pokemon>(&line).unwrap())
+            .map(|line| json::from_str::<Pokemon>(&line).unwrap())
     }
 
     fn find_one_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
@@ -162,7 +166,7 @@ impl PokeDex {
     pub fn find_by_type(&self, ptype: PokemonType) -> MultiSearchReturn {
         // println!("find_by_type");
         self.find_many_pokemon(|pokemon| {
-            pokemon.get_primary_type() == ptype || pokemon.get_seconary_type() == ptype
+            pokemon.get_primary_type() == ptype || pokemon.get_seconary_type() == Some(ptype)
         })
     }
 
