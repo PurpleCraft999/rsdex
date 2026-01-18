@@ -115,7 +115,7 @@ impl From<MultiSearchReturn> for PokedexSearchResualt {
     }
 }
 
-pub const POKEDEX_DATA: &[u8; 236014] = include_bytes!("../pokedex.jsonl");
+pub const POKEDEX_DATA: &[u8; 282567] = include_bytes!("../pokedex.jsonl");
 pub struct PokeDex {
     mmap: Mmap,
 }
@@ -184,20 +184,15 @@ impl PokeDex {
     }
 }
 
-///this only exist to not have to deseirialze the entire  `Pokemon` struct when parsing
+///this only exist to not have to deseirialze the entire  `Pokemon` struct when parsing for the `make_pokemon_name_array!` macro
 #[derive(Debug, Deserialize)]
 pub struct PokemonName {
     pub name: String,
 }
-// impl<'s> Deref for PokemonName<'s> {
-//     type Target = str;
-//     fn deref(&self) -> &Self::Target {
-//                 self.name
-//     }
-// }
 
+/// the number of pokemon in the pokedex
 pub const MAX_POKEDEX_NUM: u16 = 1025;
-// #[macro_export]
+///returns an array of <code>[String;[`MAX_POKEDEX_NUM`]]</code>
 macro_rules! make_pokemon_name_array {
     () => {{
         use std::io::BufRead;
