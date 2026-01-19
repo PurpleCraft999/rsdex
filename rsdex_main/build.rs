@@ -6,13 +6,12 @@ fn main() {
     // emit_warning("test");
     on_pokedex_data_change();
 }
-pub const POKEDEX_DATA: &[u8; 282565] = include_bytes!("../pokedex.jsonl");
+pub const POKEDEX_DATA: &[u8] = include_bytes!("../pokedex.jsonl");
 pub const MAX_POKEDEX_NUM: u16 = 1025;
 
 use std::{env, io::BufRead, path::Path};
 
 use serde::Deserialize;
-
 ///this only exist to not have to deseirialze the entire `Pokemon` struct when parsing for the `make_pokemon_name_array!` macro
 #[derive(Debug, Deserialize)]
 pub struct PokemonName {
