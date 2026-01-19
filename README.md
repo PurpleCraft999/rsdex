@@ -59,7 +59,7 @@ you can also do get stats with ≤ or ≥ the stat value by adding `l` or `g` to
 
 filtering by egg group is posible and for the egg groups that share a name with types add egg to the end
 
-`rsdex field` for pokemon in the feild egg group
+`rsdex field` for pokemon in the field egg group
 `rsdex fairyegg` for the fairy egg group
 
 <h2>Flags</h2>
