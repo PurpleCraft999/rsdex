@@ -83,7 +83,7 @@ pub struct Pokemon {
 
     egg_group1: EggGroup,
     #[serde(deserialize_with = "null_parser")]
-    egg_group2:EggGroup,
+    egg_group2: EggGroup,
 }
 impl Display for Pokemon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -91,10 +91,12 @@ impl Display for Pokemon {
     }
 }
 impl Pokemon {
-    fn possible_empty_value_stringer<'n,N:Null<'n>+PartialEq+Display>(pos_null:&N)->String{
-        if *pos_null != N::null(){
-            format!(" and {}",pos_null)
-        } else{
+    fn possible_empty_value_stringer<'n, N: Null<'n> + PartialEq + Display>(
+        pos_null: &N,
+    ) -> String {
+        if *pos_null != N::null() {
+            format!(" and {}", pos_null)
+        } else {
             "".into()
         }
     }
@@ -114,7 +116,7 @@ impl Pokemon {
 
         if detail_level >= 2 {
             data_string.push_str(format!("this pokemon is {}\n", self.color).as_str());
-            data_string.push_str(format!("this pokemon is in the {}",self.egg_group1).as_str());
+            data_string.push_str(format!("this pokemon is in the {}", self.egg_group1).as_str());
             data_string.push_str(Self::possible_empty_value_stringer(&self.egg_group2).as_str());
             data_string.push_str(" egg group(s)\n");
         }
@@ -148,10 +150,10 @@ impl Pokemon {
     pub fn get_color(&self) -> PokedexColor {
         self.color
     }
-    pub fn get_egg_group_1(&self)->&EggGroup{
+    pub fn get_egg_group_1(&self) -> &EggGroup {
         &self.egg_group1
     }
-    pub fn get_egg_group_2(&self)->&EggGroup{
+    pub fn get_egg_group_2(&self) -> &EggGroup {
         &self.egg_group2
     }
     pub fn stat_matches(&self, stat: &StatWithOrder) -> bool {
@@ -250,7 +252,7 @@ fn str_to_u8(s: &str) -> u8 {
         .parse()
         .expect("expected a number but none was found ")
 }
-#[derive(Deserialize,Clone,Serialize,Display,PartialEq,EnumString,VariantArray)]
+#[derive(Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantArray)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 ///for whatever reason these names of some of them are different in the data set then else where
@@ -280,7 +282,7 @@ pub enum EggGroup {
     Dragon,
     NoEggs,
     Genderunknown,
-    None
+    None,
 }
 impl<'d> Null<'d> for EggGroup {
     fn null() -> Self {

@@ -23,8 +23,6 @@ fn on_pokedex_data_change() {
     // let data_string = manifest_dir+"/pokedex.jsonl";
     let pokedex_data_const = include_bytes!("pokedex.jsonl");
 
-
-
     let mut vec = Vec::with_capacity(MAX_POKEDEX_NUM as usize);
     for line in pokedex_data_const.lines() {
         let line = line.expect("failed to read line");

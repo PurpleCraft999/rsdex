@@ -29,7 +29,7 @@ fn main() {
         SearchValue::Type { ptype } => pokedex.find_by_type(ptype).into(),
         SearchValue::Color { color } => pokedex.find_by_color(color).into(),
         SearchValue::Stat { stat } => pokedex.find_by_stat(&stat).into(),
-        SearchValue::EggGroup { group }=>pokedex.find_by_egg_group(&group).into(),
+        SearchValue::EggGroup { group } => pokedex.find_by_egg_group(&group).into(),
     };
     if args.write_to_file != DEFAULT_FP {
         pokemon
@@ -84,24 +84,12 @@ struct Args {
 const DEFAULT_FP: &str = "_";
 #[derive(clap::Subcommand, Clone, Display)]
 enum SearchValue {
-    NatDex {
-        dex_num: u16,
-    },
-    Name {
-        name: String,
-    },
-    Type {
-        ptype: PokemonType,
-    },
-    Color {
-        color: PokedexColor,
-    },
-    Stat {
-        stat: StatWithOrder,
-    },
-    EggGroup{
-        group:EggGroup
-    }
+    NatDex { dex_num: u16 },
+    Name { name: String },
+    Type { ptype: PokemonType },
+    Color { color: PokedexColor },
+    Stat { stat: StatWithOrder },
+    EggGroup { group: EggGroup },
 }
 use crate::pokedex::POKEMON_NAME_ARRAY;
 impl SearchValue {
@@ -126,7 +114,7 @@ impl SearchValue {
             return Ok(SearchValue::Color { color });
         } else if let Ok(stat) = StatWithOrder::from_str(input) {
             return Ok(SearchValue::Stat { stat });
-        } else if let Ok(group) = EggGroup::from_str(input){
+        } else if let Ok(group) = EggGroup::from_str(input) {
             return Ok(SearchValue::EggGroup { group });
         }
         Err(Self::parsing_error(input))

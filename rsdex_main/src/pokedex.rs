@@ -183,8 +183,9 @@ impl PokeDex {
     pub fn find_by_stat(&self, stat: &StatWithOrder) -> MultiSearchReturn {
         self.find_many_pokemon(|pokemon| pokemon.stat_matches(stat))
     }
-    pub fn find_by_egg_group(&self,group:&EggGroup)->MultiSearchReturn {
-        self.find_many_pokemon(|pokemon|pokemon.get_egg_group_1()==group||pokemon.get_egg_group_2()==group)
+    pub fn find_by_egg_group(&self, group: &EggGroup) -> MultiSearchReturn {
+        self.find_many_pokemon(|pokemon| {
+            pokemon.get_egg_group_1() == group || pokemon.get_egg_group_2() == group
+        })
     }
 }
-

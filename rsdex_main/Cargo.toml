@@ -6,7 +6,10 @@ description = "a little tool that behaves as a pokedex"
 license = "MIT"
 repository = "https://github.com/PurpleCraft999/rsdex"
 authors = ["PurpleCraft999"]
-include = ["pokedex.jsonl","src/","build.rs"]
+readme = "../README.md"
+# include = ["pokedex.jsonl","src/","build.rs","/README.md"]
+
+
 [dependencies]
 rayon = "1.11.0"
 serde_json ={ workspace = true}
