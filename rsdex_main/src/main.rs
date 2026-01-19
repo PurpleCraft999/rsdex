@@ -12,7 +12,7 @@ use strum::{Display, VariantArray};
 
 use crate::{
     pokedex::{MAX_POKEDEX_NUM, PokedexSearchResualt},
-    pokemon::{StatWithOrder, compute_similarity},
+    pokemon::{EggGroup, StatWithOrder, compute_similarity},
 };
 fn main() {
     let args = Args::parse();
@@ -24,11 +24,12 @@ fn main() {
     // let pkmn1 = pokedex.find_by_natinal_dex_number(5).unwrap();
     // let pkmn2 = pokedex.find_by_natinal_dex_number(7).unwrap();
     let pokemon: PokedexSearchResualt = match args.search_value {
-        SearchValue::Dex { dex_num } => pokedex.find_by_natinal_dex_number(dex_num).into(),
+        SearchValue::NatDex { dex_num } => pokedex.find_by_natinal_dex_number(dex_num).into(),
         SearchValue::Name { name } => pokedex.find_by_name(&name).into(),
         SearchValue::Type { ptype } => pokedex.find_by_type(ptype).into(),
         SearchValue::Color { color } => pokedex.find_by_color(color).into(),
         SearchValue::Stat { stat } => pokedex.find_by_stat(&stat).into(),
+        SearchValue::EggGroup { group }=>pokedex.find_by_egg_group(&group).into(),
     };
     if args.write_to_file != DEFAULT_FP {
         pokemon
@@ -82,12 +83,10 @@ struct Args {
 }
 const DEFAULT_FP: &str = "_";
 #[derive(clap::Subcommand, Clone, Display)]
-///test
 enum SearchValue {
-    Dex {
+    NatDex {
         dex_num: u16,
     },
-
     Name {
         name: String,
     },
@@ -97,10 +96,12 @@ enum SearchValue {
     Color {
         color: PokedexColor,
     },
-    ///stat help search
     Stat {
         stat: StatWithOrder,
     },
+    EggGroup{
+        group:EggGroup
+    }
 }
 use crate::pokedex::POKEMON_NAME_ARRAY;
 impl SearchValue {
@@ -113,7 +114,7 @@ impl SearchValue {
         }
         if let Ok(dex_num) = input.parse::<u16>() {
             if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
-                return Ok(SearchValue::Dex { dex_num });
+                return Ok(SearchValue::NatDex { dex_num });
             } else {
                 return Err(format!(
                     "the search value must be between 1-{MAX_POKEDEX_NUM}"
@@ -125,6 +126,8 @@ impl SearchValue {
             return Ok(SearchValue::Color { color });
         } else if let Ok(stat) = StatWithOrder::from_str(input) {
             return Ok(SearchValue::Stat { stat });
+        } else if let Ok(group) = EggGroup::from_str(input){
+            return Ok(SearchValue::EggGroup { group });
         }
         Err(Self::parsing_error(input))
     }
@@ -133,6 +136,8 @@ impl SearchValue {
         err_vec.append(&mut compute_similarity(input, &POKEMON_NAME_ARRAY));
         err_vec.append(&mut compute_similarity(input, PokedexColor::VARIANTS));
         err_vec.append(&mut compute_similarity(input, PokemonType::VARIANTS));
+
+        err_vec.append(&mut compute_similarity(input, EggGroup::VARIANTS));
         let mut did_you_mean_str = String::with_capacity(err_vec.len());
         if !err_vec.is_empty() {
             did_you_mean_str.push_str("did you mean:");
@@ -170,7 +175,7 @@ fn test_nat_dex_numbers() {
         let args = ["rsdex".into(), dex_num.to_string()];
         let args = Args::parse_from(args);
         match args.search_value {
-            SearchValue::Dex { dex_num } => pokedex.find_by_natinal_dex_number(dex_num).unwrap(),
+            SearchValue::NatDex { dex_num } => pokedex.find_by_natinal_dex_number(dex_num).unwrap(),
             e => panic!("nat dex test failed: number:{dex_num},value:{e}"),
         };
     }

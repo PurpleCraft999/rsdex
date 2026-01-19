@@ -1,6 +1,6 @@
 use crate::{
     WriteMode,
-    pokemon::{PokedexColor, Pokemon, PokemonType, StatWithOrder},
+    pokemon::{EggGroup, PokedexColor, Pokemon, PokemonType, StatWithOrder},
 };
 use memmap2::Mmap;
 use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -183,21 +183,8 @@ impl PokeDex {
     pub fn find_by_stat(&self, stat: &StatWithOrder) -> MultiSearchReturn {
         self.find_many_pokemon(|pokemon| pokemon.stat_matches(stat))
     }
+    pub fn find_by_egg_group(&self,group:&EggGroup)->MultiSearchReturn {
+        self.find_many_pokemon(|pokemon|pokemon.get_egg_group_1()==group||pokemon.get_egg_group_2()==group)
+    }
 }
 
-// / the number of pokemon in the pokedex
-// /returns an array of <code>[String;[`MAX_POKEDEX_NUM`]]</code>
-// macro_rules! make_pokemon_name_array {
-//     () => {{
-//         use std::io::BufRead;
-//         use $crate::pokedex::{POKEDEX_DATA, PokemonName};
-//         let mut vec = Vec::with_capacity(MAX_POKEDEX_NUM as usize);
-//         for line in POKEDEX_DATA.lines() {
-//             let line = line.expect("failed to read line");
-//             let name = serde_json::from_str::<PokemonName>(&line)
-//                 .expect("could not parse pokemon from line");
-//             vec.push(name.name);
-//         }
-//         vec.try_into().expect("")
-//     }};
-// }

@@ -54,6 +54,14 @@ you can also do get stats with ≤ or ≥ the stat value by adding `l` or `g` to
 `rsdex l50s` returns all pokemon with ≤ 50 speed
 
 
+
+<h3>Egg Group</h3>
+
+filtering by egg group is posible and for the egg groups that share a name with types add egg to the end
+
+`rsdex field` for pokemon in the feild egg group
+`rsdex fairyegg` for the fairy egg group
+
 <h2>Flags</h2>
 if you add --detailed or -d to the end of a search you'll get a more detailed summary
 Example

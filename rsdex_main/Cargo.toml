@@ -1,6 +1,6 @@
 [package]
 name = "rsdex"
-version = "0.1.30"
+version = "0.1.40"
 edition = "2024"
 description = "a little tool that behaves as a pokedex"
 license = "MIT"

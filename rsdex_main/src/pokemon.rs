@@ -91,6 +91,14 @@ impl Display for Pokemon {
     }
 }
 impl Pokemon {
+    fn possible_empty_value_stringer<'n,N:Null<'n>+PartialEq+Display>(pos_null:&N)->String{
+        if *pos_null != N::null(){
+            format!(" and {}",pos_null)
+        } else{
+            "".into()
+        }
+    }
+
     pub fn get_data_as_string(&self, detail_level: u8) -> String {
         let mut data_string = String::new();
 
@@ -100,14 +108,15 @@ impl Pokemon {
             data_string.push_str(format!("the {}\n", self.genus).as_str());
             //this section prints the types
             data_string.push_str(format!("{}", self.type1).as_str());
-            if self.type2 != PokemonType::None {
-                data_string.push_str(format!(" and {}", self.type2).as_str())
-            }
+            data_string.push_str(Self::possible_empty_value_stringer(&self.type2).as_str());
             data_string.push_str(" type\n");
         }
 
         if detail_level >= 2 {
             data_string.push_str(format!("this pokemon is {}\n", self.color).as_str());
+            data_string.push_str(format!("this pokemon is in the {}",self.egg_group1).as_str());
+            data_string.push_str(Self::possible_empty_value_stringer(&self.egg_group2).as_str());
+            data_string.push_str(" egg group(s)\n");
         }
         if detail_level >= 4 {
             data_string.push_str(format!("hp:{}\n", self.hp).as_str());
@@ -138,6 +147,12 @@ impl Pokemon {
     }
     pub fn get_color(&self) -> PokedexColor {
         self.color
+    }
+    pub fn get_egg_group_1(&self)->&EggGroup{
+        &self.egg_group1
+    }
+    pub fn get_egg_group_2(&self)->&EggGroup{
+        &self.egg_group2
     }
     pub fn stat_matches(&self, stat: &StatWithOrder) -> bool {
         let order = stat.operation;
@@ -235,8 +250,9 @@ fn str_to_u8(s: &str) -> u8 {
         .parse()
         .expect("expected a number but none was found ")
 }
-#[derive(Deserialize,Clone,Serialize)]
+#[derive(Deserialize,Clone,Serialize,Display,PartialEq,EnumString,VariantArray)]
 #[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 ///for whatever reason these names of some of them are different in the data set then else where
 pub enum EggGroup {
     Monster,
@@ -245,17 +261,22 @@ pub enum EggGroup {
     Water1,
     Water2,
     Water3,
+    #[strum(serialize = "bugegg")]
     Bug,
     Mineral,
+    #[strum(serialize = "flyingegg")]
     Flying,
     #[serde(alias = "indeterminate")]
     Amorphous,
     #[serde(alias = "ground")]
     Field,
+    #[strum(serialize = "fairyegg")]
     Fairy,
     Ditto,
     #[serde(alias = "plant")]
+    #[strum(serialize = "grassegg")]
     Grass,
+    #[strum(serialize = "dragonegg")]
     Dragon,
     NoEggs,
     Genderunknown,
