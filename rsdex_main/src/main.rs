@@ -11,7 +11,7 @@ use pokemon::{PokedexColor, PokemonType};
 use strum::{Display, VariantArray};
 
 use crate::{
-    pokedex::{MAX_POKEDEX_NUM, PokedexSearchResualt},
+    pokedex::MAX_POKEDEX_NUM,
     pokemon::{EggGroup, StatWithOrder, compute_similarity},
 };
 fn main() {
@@ -23,14 +23,13 @@ fn main() {
     };
     // let pkmn1 = pokedex.find_by_natinal_dex_number(5).unwrap();
     // let pkmn2 = pokedex.find_by_natinal_dex_number(7).unwrap();
-    let pokemon: PokedexSearchResualt = match args.search_value {
-        SearchValue::NatDex { dex_num } => pokedex.find_by_natinal_dex_number(dex_num).into(),
-        SearchValue::Name { name } => pokedex.find_by_name(&name).into(),
-        SearchValue::Type { ptype } => pokedex.find_by_type(ptype).into(),
-        SearchValue::Color { color } => pokedex.find_by_color(color).into(),
-        SearchValue::Stat { stat } => pokedex.find_by_stat(&stat).into(),
-        SearchValue::EggGroup { group } => pokedex.find_by_egg_group(&group).into(),
+    // let pokemon: PokedexSearchResualt = pokedex.find(&args.search_value);
+    let pokemon = if let Some(value2) = args.second_search_value {
+        pokedex.search_many([args.search_value, value2])
+    } else {
+        pokedex.search(&args.search_value)
     };
+
     if args.write_to_file != DEFAULT_FP {
         pokemon
             .write_data_to_file(args.write_to_file, detail_level, args.write_mode)
@@ -72,6 +71,11 @@ struct Args {
     ///
     #[arg(value_parser = SearchValue::parser)]
     search_value: SearchValue,
+    #[arg(value_parser = SearchValue::parser_restricted)]
+    /// if you have this you can search for pokemon meeting both criteria
+    /// some options are disabled such as name and dex number because it will always return an error
+    second_search_value: Option<SearchValue>,
+
     ///depending on the value you give it, it will provide you with more data
     #[arg(long, short,value_parser = value_parser!(u8).range(0..=5),default_value_t=0)]
     detailed: u8,
@@ -139,6 +143,16 @@ impl SearchValue {
             "sorry we couldnt parse the info".into()
         }
     }
+    fn parser_restricted(input: &str) -> Result<SearchValue, String> {
+        match Self::parser(input) {
+            Ok(value) => match value {
+                Self::Name { .. } => Err("cant have name for second arg".into()),
+                Self::NatDex { .. } => Err("cant have dex num for second num".into()),
+                ok => Ok(ok),
+            },
+            Err(e) => Err(e),
+        }
+    }
 }
 #[derive(Clone, Display)]
 pub enum WriteMode {
@@ -163,7 +177,9 @@ fn test_nat_dex_numbers() {
         let args = ["rsdex".into(), dex_num.to_string()];
         let args = Args::parse_from(args);
         match args.search_value {
-            SearchValue::NatDex { dex_num } => pokedex.find_by_natinal_dex_number(dex_num).unwrap(),
+            SearchValue::NatDex { dex_num } => {
+                pokedex.find_by_natinal_dex_number(&dex_num).unwrap()
+            }
             e => panic!("nat dex test failed: number:{dex_num},value:{e}"),
         };
     }

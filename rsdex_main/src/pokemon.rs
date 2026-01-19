@@ -6,7 +6,19 @@ use strum::{Display, EnumString, VariantArray};
 
 // use crate::pokedex::PokedexColor;
 
-#[derive(Deserialize, PartialEq, Clone, Copy, EnumString, Display, VariantArray, Serialize)]
+#[derive(
+    Deserialize,
+    PartialEq,
+    Clone,
+    Copy,
+    EnumString,
+    Display,
+    VariantArray,
+    Serialize,
+    Eq,
+    Hash,
+    Debug,
+)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum PokemonType {
@@ -35,7 +47,19 @@ impl<'n> Null<'n> for PokemonType {
         Self::None
     }
 }
-#[derive(Deserialize, Clone, Copy, PartialEq, EnumString, Display, VariantArray, Serialize)]
+#[derive(
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    EnumString,
+    Display,
+    VariantArray,
+    Serialize,
+    Eq,
+    Hash,
+    Debug,
+)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum PokedexColor {
@@ -63,7 +87,7 @@ pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<Strin
         .collect()
 }
 
-#[derive(Deserialize, Clone, Serialize)]
+#[derive(Deserialize, Clone, Serialize, PartialEq, Eq, Hash, Debug)]
 pub struct Pokemon {
     name: String,
     national_dex_number: u16,
@@ -138,17 +162,17 @@ impl Pokemon {
     pub fn get_name(&self) -> &String {
         &self.name
     }
-    pub fn get_dex_number(&self) -> u16 {
-        self.national_dex_number
+    pub fn get_dex_number(&self) -> &u16 {
+        &self.national_dex_number
     }
-    pub fn get_primary_type(&self) -> PokemonType {
-        self.type1
+    pub fn get_primary_type(&self) -> &PokemonType {
+        &self.type1
     }
-    pub fn get_seconary_type(&self) -> PokemonType {
-        self.type2
+    pub fn get_seconary_type(&self) -> &PokemonType {
+        &self.type2
     }
-    pub fn get_color(&self) -> PokedexColor {
-        self.color
+    pub fn get_color(&self) -> &PokedexColor {
+        &self.color
     }
     pub fn get_egg_group_1(&self) -> &EggGroup {
         &self.egg_group1
@@ -252,7 +276,9 @@ fn str_to_u8(s: &str) -> u8 {
         .parse()
         .expect("expected a number but none was found ")
 }
-#[derive(Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantArray)]
+#[derive(
+    Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantArray, Eq, Hash, Debug,
+)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 ///for whatever reason these names of some of them are different in the data set then else where
