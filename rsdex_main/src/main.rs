@@ -75,7 +75,7 @@ struct Args {
     ///will write to the given path with the specified data level in the format specified by write-mode
     #[arg(long,aliases(["fp"]))]
     file_path: Option<String>,
-    #[arg(long,requires = "file_path")]
+    #[arg(long, requires = "file_path")]
     write_mode: Option<WriteMode>,
 }
 #[derive(clap::Subcommand, Clone, Display)]
@@ -180,12 +180,14 @@ impl WriteMode {
 
         match self {
             WriteMode::Json => {
-                writer.write_all(  serde_json::to_string_pretty(&data)?.as_bytes())?;
+                writer.write_all(serde_json::to_string_pretty(&data)?.as_bytes())?;
             }
 
             WriteMode::Jsonl => {
                 for pkmn in data {
-                    writer.write_all((serde_json::to_string(&pkmn.get_write_data(detail_level))?+"\n").as_bytes())?;
+                    writer.write_all(
+                        (serde_json::to_string(&pkmn.get_as_map(detail_level))? + "\n").as_bytes(),
+                    )?;
                 }
             }
             // WriteMode::Guess => {
@@ -196,7 +198,7 @@ impl WriteMode {
             WriteMode::Csv => {
                 for (i, pkmn) in data.iter().enumerate() {
                     let mut string = String::new();
-                    let vec = pkmn.get_data_as_vec(detail_level);
+                    let vec = pkmn.get_as_vec(detail_level);
                     if i == 0 {
                         let mut head_string = String::new();
                         for (k, _) in &vec {

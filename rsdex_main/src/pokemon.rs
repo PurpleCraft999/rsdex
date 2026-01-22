@@ -111,7 +111,7 @@ pub struct Pokemon {
 }
 impl Display for Pokemon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.get_data_as_string(0))
+        write!(f, "{}", self.get_as_string(0))
     }
 }
 impl Pokemon {
@@ -125,7 +125,7 @@ impl Pokemon {
     //     }
     // }
 
-    pub fn get_data_as_vec(&self, detail_level: u8) -> Vec<(&str, String)> {
+    pub fn get_as_vec(&self, detail_level: u8) -> Vec<(&str, String)> {
         let mut vec = Vec::new();
         vec.push(("name", capitalize_first_letter(&self.name)));
         vec.push(("national dex number", self.national_dex_number.to_string()));
@@ -159,8 +159,8 @@ impl Pokemon {
         // map
     }
 
-    pub fn get_write_data(&self, detail_level: u8) -> HashMap<&str, String> {
-        let vec = self.get_data_as_vec(detail_level);
+    pub fn get_as_map(&self, detail_level: u8) -> HashMap<&str, String> {
+        let vec = self.get_as_vec(detail_level);
         let mut map = HashMap::with_capacity(vec.len());
         for (k, v) in vec {
             map.insert(k, v);
@@ -168,9 +168,9 @@ impl Pokemon {
         map
     }
 
-    pub fn get_data_as_string(&self, detail_level: u8) -> String {
+    pub fn get_as_string(&self, detail_level: u8) -> String {
         let mut data_string = String::new();
-        for (k, v) in self.get_data_as_vec(detail_level) {
+        for (k, v) in self.get_as_vec(detail_level) {
             data_string.push_str(&(k.to_owned() + ":" + &v + "\n"));
 
             // data_string.push_str(&v);
@@ -181,7 +181,7 @@ impl Pokemon {
     }
 
     pub fn print(&self, detail_level: u8) {
-        print!("{}", self.get_data_as_string(detail_level));
+        print!("{}", self.get_as_string(detail_level));
         // println!("print data")
     }
     pub fn get_name(&self) -> &String {
