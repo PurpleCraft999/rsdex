@@ -1,5 +1,5 @@
 use crate::{
-    SearchValue, WriteMode,
+    SearchQuery, WriteMode,
     pokemon::{EggGroup, PokedexColor, Pokemon, PokemonType, StatWithOrder},
 };
 use clap::ValueEnum;
@@ -187,20 +187,20 @@ impl PokeDex {
         })
     }
 
-    pub fn search(&self, value: &SearchValue) -> PokedexSearchResualt {
+    pub fn search(&self, value: &SearchQuery) -> PokedexSearchResualt {
         match value {
-            SearchValue::NatDex { dex_num } => self.find_by_natinal_dex_number(dex_num).into(),
-            SearchValue::Name { name } => self.find_by_name(name).into(),
-            SearchValue::Type { ptype } => self.find_by_type(ptype).into(),
-            SearchValue::Color { color } => self.find_by_color(color).into(),
-            SearchValue::Stat { stat } => self.find_by_stat(stat).into(),
-            SearchValue::EggGroup { group } => self.find_by_egg_group(group).into(),
+            SearchQuery::NatDex { dex_num } => self.find_by_natinal_dex_number(dex_num).into(),
+            SearchQuery::Name { name } => self.find_by_name(name).into(),
+            SearchQuery::Type { ptype } => self.find_by_type(ptype).into(),
+            SearchQuery::Color { color } => self.find_by_color(color).into(),
+            SearchQuery::Stat { stat } => self.find_by_stat(stat).into(),
+            SearchQuery::EggGroup { group } => self.find_by_egg_group(group).into(),
         }
     }
 
     pub fn search_many(
         &self,
-        values: impl IntoIterator<Item = SearchValue>,
+        values: impl IntoIterator<Item = SearchQuery>,
     ) -> PokedexSearchResualt {
         let mut singles = Vec::new();
 

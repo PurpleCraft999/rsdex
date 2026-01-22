@@ -127,8 +127,8 @@ impl Pokemon {
 
     pub fn get_data_as_vec(&self, detail_level: u8) -> Vec<(&str, String)> {
         let mut vec = Vec::new();
-        vec.push(("national dex number", self.national_dex_number.to_string()));
         vec.push(("name", capitalize_first_letter(&self.name)));
+        vec.push(("national dex number", self.national_dex_number.to_string()));
         if detail_level >= 1 {
             vec.push(("genus", self.genus.clone()));
             //this section prints the types

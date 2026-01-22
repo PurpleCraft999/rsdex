@@ -29,7 +29,7 @@ fn main() {
     // } else {
     //     pokedex.search(&args.search_value)
     // };
-    let pokemon = pokedex.search_many(args.search_values);
+    let pokemon = pokedex.search_many(args.search_queries);
 
     if args.file_path != DEFAULT_FP {
         pokemon
@@ -71,8 +71,8 @@ struct Args {
     ///
     /// `rsdex g110s` for pokemon with ≥ 110 speed
     ///
-    #[arg(value_parser = SearchValue::parser)]
-    search_values: Vec<SearchValue>,
+    #[arg(value_parser = SearchQuery::parser)]
+    search_queries: Vec<SearchQuery>,
     // #[arg(value_parser = SearchValue::parser)]
     // /// if you have this you can search for pokemon meeting both criteria
     // /// some options are disabled such as name and dex number because it will always return an error
@@ -88,7 +88,7 @@ struct Args {
 }
 const DEFAULT_FP: &str = "_";
 #[derive(clap::Subcommand, Clone, Display)]
-enum SearchValue {
+enum SearchQuery {
     NatDex { dex_num: u16 },
     Name { name: String },
     Type { ptype: PokemonType },
@@ -97,7 +97,7 @@ enum SearchValue {
     EggGroup { group: EggGroup },
 }
 use crate::pokedex::POKEMON_NAME_ARRAY;
-impl SearchValue {
+impl SearchQuery {
     fn parser(input: &str) -> Result<Self, String> {
         // let pokemon_names = Po;
         for name in POKEMON_NAME_ARRAY {
@@ -107,7 +107,7 @@ impl SearchValue {
         }
         if let Ok(dex_num) = input.parse::<u16>() {
             if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
-                return Ok(SearchValue::NatDex { dex_num });
+                return Ok(SearchQuery::NatDex { dex_num });
             } else {
                 return Err(format!(
                     "the search value must be between 1-{MAX_POKEDEX_NUM}"
@@ -116,11 +116,11 @@ impl SearchValue {
         } else if let Ok(ptype) = PokemonType::from_str(input) {
             return Ok(Self::Type { ptype });
         } else if let Ok(color) = PokedexColor::from_str(input) {
-            return Ok(SearchValue::Color { color });
+            return Ok(SearchQuery::Color { color });
         } else if let Ok(stat) = StatWithOrder::from_str(input) {
-            return Ok(SearchValue::Stat { stat });
+            return Ok(SearchQuery::Stat { stat });
         } else if let Ok(group) = EggGroup::from_str(input) {
-            return Ok(SearchValue::EggGroup { group });
+            return Ok(SearchQuery::EggGroup { group });
         }
         Err(Self::parsing_error(input))
     }
@@ -155,11 +155,7 @@ impl SearchValue {
     //     }
     // }
     fn finds_single(&self) -> bool {
-        match self {
-            SearchValue::Name { .. } => true,
-            SearchValue::NatDex { .. } => true,
-            _ => false,
-        }
+        matches!(self, SearchQuery::Name { .. } | SearchQuery::NatDex { .. })
     }
 }
 #[derive(Clone, Display)]
@@ -193,31 +189,12 @@ impl WriteMode {
 
         match self {
             WriteMode::Json => {
-                writer.write_all("[".as_bytes())?;
-                for pkmn in data {
-                    let mut string = String::new();
-                    string.push_str(&serde_json::to_string_pretty(
-                        &pkmn.get_write_data(detail_level),
-                    )?);
-                    // string.pop();
-                    writer.write_all(string.as_bytes())?;
-                    // if i < data.len() - 1 {
-                    //     writer.write_all(",\n".as_bytes())?;
-                    // }
-                }
-                writer.write_all("\n]".as_bytes())?;
+                writer.write_all(  serde_json::to_string_pretty(&data)?.as_bytes())?;
             }
 
             WriteMode::Jsonl => {
                 for pkmn in data {
-                    let mut string = String::new();
-                    string.push('{');
-                    string.push_str(&serde_json::to_string(&pkmn.get_write_data(detail_level))?);
-                    string.push_str("}\n");
-                    writer.write_all(string.as_bytes())?;
-                    // if i<vec.len()-1{
-                    // writer.write_all(",\n".as_bytes())?;
-                    // }
+                    writer.write_all((serde_json::to_string(&pkmn.get_write_data(detail_level))?+"\n").as_bytes())?;
                 }
                 // writer.seek_relative(-1)
             }
