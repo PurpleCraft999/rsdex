@@ -28,7 +28,7 @@ impl PokedexSearchResualt {
     pub fn merge(&mut self, other: &mut PokedexSearchResualt) {
         self.vec.append(&mut other.vec);
     }
-    ///returns the dupes and removes them from self
+    ///returns the dupes
     pub fn find_dupes(&mut self) -> Vec<Pokemon> {
         let mut set = HashSet::new();
         let mut return_vec = Vec::new();
@@ -48,6 +48,13 @@ impl PokedexSearchResualt {
         }
         for pokemon in &self.vec {
             pokemon.print(detail_level);
+        }
+    }
+    fn get_if_single(&self) -> Option<&Pokemon> {
+        if self.vec.len() == 1 {
+            Some(&self.vec[0])
+        } else {
+            None
         }
     }
     pub fn write_data_to_file(
@@ -84,7 +91,7 @@ impl From<SingleSearchReturn> for PokedexSearchResualt {
     fn from(value: SingleSearchReturn) -> Self {
         match value {
             Some(v) => Self::new(vec![v]),
-            None => Self::new(vec![]),
+            None => Self::default(),
         }
     }
 }
@@ -98,6 +105,11 @@ impl From<MultiSearchReturn> for PokedexSearchResualt {
             }
         });
         Self::new(vec)
+    }
+}
+impl Default for PokedexSearchResualt {
+    fn default() -> Self {
+        Self::new(Vec::new())
     }
 }
 // const POKEDEX_DATA = include!()
@@ -190,10 +202,21 @@ impl PokeDex {
         &self,
         values: impl IntoIterator<Item = SearchValue>,
     ) -> PokedexSearchResualt {
-        let mut search_resault = PokedexSearchResualt::new(Vec::new());
+        let mut singles = Vec::new();
+
+        let mut many = PokedexSearchResualt::default();
         for value in values {
-            search_resault.merge(&mut self.search(&value));
+            if value.finds_single() {
+                match self.search(&value).get_if_single() {
+                    Some(value) => singles.push(value.clone()),
+                    None => panic!("i did something wrong  (search many)"),
+                }
+            } else {
+                many.merge(&mut self.search(&value));
+            }
         }
-        search_resault.find_dupes().into()
+        many.find_dupes();
+        many.vec.append(&mut singles);
+        many
     }
 }

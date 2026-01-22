@@ -34,9 +34,7 @@ fn on_pokedex_data_change() {
         vec.try_into().expect("unable to turn vec into name_array");
 
     // let a = 1;
-
-    // println!("cargo::rerun-if-changed=pokedex.jsonl");
-    println!("cargo::rerun-if-changed=build.rs");
+    println!("cargo::rerun-if-changed=pokedex.jsonl");
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let pokedex_data_path = Path::new(&out_dir).join("pokedex_data.rs");
 

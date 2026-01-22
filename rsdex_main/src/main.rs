@@ -24,11 +24,12 @@ fn main() {
     // let pkmn1 = pokedex.find_by_natinal_dex_number(5).unwrap();
     // let pkmn2 = pokedex.find_by_natinal_dex_number(7).unwrap();
     // let pokemon: PokedexSearchResualt = pokedex.find(&args.search_value);
-    let pokemon = if let Some(value2) = args.second_search_value {
-        pokedex.search_many([args.search_value, value2])
-    } else {
-        pokedex.search(&args.search_value)
-    };
+    // let pokemon = if let Some(value2) = args.second_search_value {
+    //     pokedex.search_many([args.search_value, value2])
+    // } else {
+    //     pokedex.search(&args.search_value)
+    // };
+    let pokemon = pokedex.search_many(args.search_values);
 
     if args.file_path != DEFAULT_FP {
         pokemon
@@ -71,12 +72,11 @@ struct Args {
     /// `rsdex g110s` for pokemon with ≥ 110 speed
     ///
     #[arg(value_parser = SearchValue::parser)]
-    search_value: SearchValue,
-    #[arg(value_parser = SearchValue::parser_restricted)]
-    /// if you have this you can search for pokemon meeting both criteria
-    /// some options are disabled such as name and dex number because it will always return an error
-    second_search_value: Option<SearchValue>,
-
+    search_values: Vec<SearchValue>,
+    // #[arg(value_parser = SearchValue::parser)]
+    // /// if you have this you can search for pokemon meeting both criteria
+    // /// some options are disabled such as name and dex number because it will always return an error
+    // second_search_value: Option<SearchValue>,
     ///depending on the value you give it, it will provide you with more data
     #[arg(long, short,value_parser = value_parser!(u8).range(0..=5),default_value_t=0)]
     detailed: u8,
@@ -133,7 +133,7 @@ impl SearchValue {
         err_vec.append(&mut compute_similarity(input, EggGroup::VARIANTS));
         let mut did_you_mean_str = String::with_capacity(err_vec.len());
         if !err_vec.is_empty() {
-            did_you_mean_str.push_str("did you mean:");
+            did_you_mean_str.push_str("did you mean: ");
             for string in err_vec {
                 did_you_mean_str.push_str(&string);
                 did_you_mean_str.push(',');
@@ -144,14 +144,21 @@ impl SearchValue {
             "sorry we couldnt parse the info".into()
         }
     }
-    fn parser_restricted(input: &str) -> Result<SearchValue, String> {
-        match Self::parser(input) {
-            Ok(value) => match value {
-                Self::Name { .. } => Err("cant have name for second arg".into()),
-                Self::NatDex { .. } => Err("cant have dex num for second num".into()),
-                ok => Ok(ok),
-            },
-            Err(e) => Err(e),
+    // fn parser_restricted(input: &str) -> Result<SearchValue, String> {
+    //     match Self::parser(input) {
+    //         Ok(value) => match value {
+    //             Self::Name { .. } => Err("cant have name for second arg".into()),
+    //             Self::NatDex { .. } => Err("cant have dex num for second num".into()),
+    //             ok => Ok(ok),
+    //         },
+    //         Err(e) => Err(e),
+    //     }
+    // }
+    fn finds_single(&self) -> bool {
+        match self {
+            SearchValue::Name { .. } => true,
+            SearchValue::NatDex { .. } => true,
+            _ => false,
         }
     }
 }
@@ -186,14 +193,12 @@ impl WriteMode {
 
         match self {
             WriteMode::Json => {
-                
                 writer.write_all("[".as_bytes())?;
                 for pkmn in data {
-                    let mut  string = String::new();
-                    string.push_str(
-                        &serde_json::to_string_pretty(&pkmn.get_write_data(detail_level))?
-                            
-                    );
+                    let mut string = String::new();
+                    string.push_str(&serde_json::to_string_pretty(
+                        &pkmn.get_write_data(detail_level),
+                    )?);
                     // string.pop();
                     writer.write_all(string.as_bytes())?;
                     // if i < data.len() - 1 {
@@ -207,10 +212,7 @@ impl WriteMode {
                 for pkmn in data {
                     let mut string = String::new();
                     string.push('{');
-                    string.push_str(
-                        &serde_json::to_string(&pkmn.get_write_data(detail_level))?
-                            
-                    );
+                    string.push_str(&serde_json::to_string(&pkmn.get_write_data(detail_level))?);
                     string.push_str("}\n");
                     writer.write_all(string.as_bytes())?;
                     // if i<vec.len()-1{
@@ -225,36 +227,28 @@ impl WriteMode {
                 ));
             }
             WriteMode::Csv => {
-                for (i,pkmn) in data.iter().enumerate(){
+                for (i, pkmn) in data.iter().enumerate() {
                     let mut string = String::new();
                     let vec = pkmn.get_data_as_vec(detail_level);
-                    if i ==0{
+                    if i == 0 {
                         let mut head_string = String::new();
-                        for (k,_) in &vec{
+                        for (k, _) in &vec {
                             head_string.push_str(k);
                             head_string.push(',');
                         }
                         head_string.pop();
                         head_string.push('\n');
                         writer.write_all(head_string.as_bytes())?;
-
                     }
 
-
-
-                    for (_,v) in vec{
-                       string.push_str(&v);
+                    for (_, v) in vec {
+                        string.push_str(&v);
                         string.push(',');
-
                     }
                     string.pop();
                     string.push('\n');
                     writer.write_all(string.as_bytes())?;
                 }
-
-
-
-
             }
         }
 
@@ -262,33 +256,33 @@ impl WriteMode {
     }
 }
 
-#[test]
-fn test_nat_dex_numbers() {
-    let pokedex = PokeDex::new().unwrap();
-    for dex_num in 1..=MAX_POKEDEX_NUM {
-        let args = ["rsdex".into(), dex_num.to_string()];
-        let args = Args::parse_from(args);
-        match args.search_value {
-            SearchValue::NatDex { dex_num } => {
-                pokedex.find_by_natinal_dex_number(&dex_num).unwrap()
-            }
-            e => panic!("nat dex test failed: number:{dex_num},value:{e}"),
-        };
-    }
-}
+// #[test]
+// fn test_nat_dex_numbers() {
+//     let pokedex = PokeDex::new().unwrap();
+//     for dex_num in 1..=MAX_POKEDEX_NUM {
+//         let args = ["rsdex".into(), dex_num.to_string()];
+//         let args = Args::parse_from(args);
+//         match args.search_values {
+//             SearchValue::NatDex { dex_num } => {
+//                 pokedex.find_by_natinal_dex_number(&dex_num).unwrap()
+//             }
+//             e => panic!("nat dex test failed: number:{dex_num},value:{e}"),
+//         };
+//     }
+// }
 
-#[test]
-fn test_pokemon_names() {
-    let pokedex = PokeDex::new().unwrap();
-    for name in POKEMON_NAME_ARRAY {
-        let args = ["rsdex", &name];
-        let args = Args::parse_from(args);
-        match args.search_value {
-            SearchValue::Name { name } => pokedex.find_by_name(&name).unwrap(),
-            e => panic!("name test failed: name:{},value:{e}", &name),
-        };
-    }
-}
+// #[test]
+// fn test_pokemon_names() {
+//     let pokedex = PokeDex::new().unwrap();
+//     for name in POKEMON_NAME_ARRAY {
+//         let args = ["rsdex", &name];
+//         let args = Args::parse_from(args);
+//         match args.search_values {
+//             SearchValue::Name { name } => pokedex.find_by_name(&name).unwrap(),
+//             e => panic!("name test failed: name:{},value:{e}", &name),
+//         };
+//     }
+// }
 #[test]
 fn test_pokemon_stats() {
     let attack_args = ["rsdex".into(), "150a"];

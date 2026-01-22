@@ -159,15 +159,14 @@ impl Pokemon {
         // map
     }
 
-    pub fn get_write_data(&self,detail_level: u8)->HashMap<&str, String>{
+    pub fn get_write_data(&self, detail_level: u8) -> HashMap<&str, String> {
         let vec = self.get_data_as_vec(detail_level);
         let mut map = HashMap::with_capacity(vec.len());
-        for (k,v) in vec{
+        for (k, v) in vec {
             map.insert(k, v);
         }
         map
     }
-
 
     pub fn get_data_as_string(&self, detail_level: u8) -> String {
         let mut data_string = String::new();
@@ -335,21 +334,28 @@ pub enum EggGroup {
     Water2,
     Water3,
     #[strum(serialize = "bugegg")]
+    #[strum(to_string = "bug")]
     Bug,
     Mineral,
     #[strum(serialize = "flyingegg")]
+    #[strum(to_string = "flying")]
     Flying,
     #[serde(alias = "indeterminate")]
+    #[strum(to_string = "amorphous")]
     Amorphous,
     #[serde(alias = "ground")]
+    #[strum(to_string = "field")]
     Field,
     #[strum(serialize = "fairyegg")]
+    #[strum(to_string = "fairy")]
     Fairy,
     Ditto,
     #[serde(alias = "plant")]
     #[strum(serialize = "grassegg")]
+    #[strum(to_string = "grass")]
     Grass,
     #[strum(serialize = "dragonegg")]
+    #[strum(to_string = "dragon")]
     Dragon,
     NoEggs,
     Genderunknown,
