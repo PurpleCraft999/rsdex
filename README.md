@@ -27,6 +27,10 @@ go to the latest release and copy the shell script into the terminal
 
 <h2>Usage</h2>
 
+<h3></h3>
+
+
+
 <h3>Dex and Name</h3>
 
 `rsdex 1` which will return bulbasaur's pokedex entry or
@@ -75,7 +79,7 @@ Example
 <code>rsdex 1 -d </code>
 
 <h3>Writing to file</h3>
-when you do <code> rsdex red --write-to-file "red_pokemon.json"</code> it will save the reasults to the specified file path
+when you do <code> rsdex red --fp "red_pokemon.json"</code> it will save the reasults to the specified file path
 you can also add the --write_mode write mode to the end of it to change the write mode to another type
 it also takes into acount the level of detail set 
 
