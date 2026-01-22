@@ -218,7 +218,7 @@ impl PokeDex {
                 many.merge(&mut self.search(&value));
             }
         }
-        many.find_dupes();
+        many = PokedexSearchResualt::new(many.find_dupes());
         many.vec.append(&mut singles);
         many
     }
