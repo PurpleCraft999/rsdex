@@ -27,8 +27,10 @@ go to the latest release and copy the shell script into the terminal
 
 <h2>Usage</h2>
 
-<h3></h3>
-
+<h3>Multiple Queries</h3>
+as of 0.1.60 you can now make as many queries as you want
+for queries that can return multiple pokemon it will return all of them that meet all the critera
+for quiries that only retrun one pokemon it will append the pokemon to the end
 
 
 <h3>Dex and Name</h3>
