@@ -214,7 +214,7 @@ dependencies = [
 
 [[package]]
 name = "rsdex"
-version = "0.1.55"
+version = "0.1.60"
 dependencies = [
  "clap",
  "memmap2",
