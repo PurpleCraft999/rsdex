@@ -1,7 +1,6 @@
 use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
-use strsim::damerau_levenshtein;
 
 // use crate::pokedex::PokedexColor;
 use crate::data_types::{
@@ -9,17 +8,7 @@ use crate::data_types::{
     stat_matches_ordering,
 };
 
-pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<String> {
-    options
-        .iter()
-        .map(|s| {
-            let s = s.to_string();
-            (damerau_levenshtein(&s, string), s)
-        })
-        .filter(|(num, s)| *num < 3 && string != s)
-        .map(|(_, s)| s)
-        .collect()
-}
+
 
 #[derive(Deserialize, Clone, Serialize, PartialEq, Eq, Hash, Debug)]
 pub struct Pokemon {

@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, str::FromStr};
 
-use crate::pokemon::Null;
+use crate::{compute_similarity, pokemon::Null};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 
@@ -207,4 +207,79 @@ pub enum BodyShape {
     Heads,
     Ball,
     Blob,
+}
+
+
+
+
+#[derive(Clone, Display)]
+pub enum SearchQuery {
+    NatDex { dex_num: u16 },
+    Name { name: String },
+    Type { ptype: PokemonType },
+    Color { color: PokedexColor },
+    Stat { stat: StatWithOrder },
+    EggGroup { group: EggGroup },
+}
+use crate::pokedex::{MAX_POKEDEX_NUM, POKEMON_NAME_ARRAY};
+impl SearchQuery {
+    pub fn parser(input: &str) -> Result<Self, String> {
+        // let pokemon_names = Po;
+        for name in POKEMON_NAME_ARRAY {
+            if input == name {
+                return Ok(Self::Name { name: input.into() });
+            }
+        }
+        if let Ok(dex_num) = input.parse::<u16>() {
+            if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
+                return Ok(SearchQuery::NatDex { dex_num });
+            } else {
+                return Err(format!(
+                    "the search value must be between 1-{MAX_POKEDEX_NUM}"
+                ));
+            }
+        } else if let Ok(ptype) = PokemonType::from_str(input) {
+            return Ok(Self::Type { ptype });
+        } else if let Ok(color) = PokedexColor::from_str(input) {
+            return Ok(SearchQuery::Color { color });
+        } else if let Ok(stat) = StatWithOrder::from_str(input) {
+            return Ok(SearchQuery::Stat { stat });
+        } else if let Ok(group) = EggGroup::from_str(input) {
+            return Ok(SearchQuery::EggGroup { group });
+        }
+        Err(Self::parsing_error(input))
+    }
+    fn parsing_error(input: &str) -> String {
+        let mut err_vec = Vec::new();
+        err_vec.append(&mut compute_similarity(input, &POKEMON_NAME_ARRAY));
+        err_vec.append(&mut compute_similarity(input, PokedexColor::VARIANTS));
+        err_vec.append(&mut compute_similarity(input, PokemonType::VARIANTS));
+
+        err_vec.append(&mut compute_similarity(input, EggGroup::VARIANTS));
+        let mut did_you_mean_str = String::with_capacity(err_vec.len());
+        if !err_vec.is_empty() {
+            did_you_mean_str.push_str("did you mean: ");
+            for string in err_vec {
+                did_you_mean_str.push_str(&string);
+                did_you_mean_str.push(',');
+            }
+            did_you_mean_str.pop();
+            did_you_mean_str
+        } else {
+            "sorry we couldnt parse the info".into()
+        }
+    }
+    // fn parser_restricted(input: &str) -> Result<SearchValue, String> {
+    //     match Self::parser(input) {
+    //         Ok(value) => match value {
+    //             Self::Name { .. } => Err("cant have name for second arg".into()),
+    //             Self::NatDex { .. } => Err("cant have dex num for second num".into()),
+    //             ok => Ok(ok),
+    //         },
+    //         Err(e) => Err(e),
+    //     }
+    // }
+    pub fn finds_single(&self) -> bool {
+        matches!(self, SearchQuery::Name { .. } | SearchQuery::NatDex { .. })
+    }
 }

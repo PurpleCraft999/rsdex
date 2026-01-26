@@ -1,19 +1,18 @@
 use crate::{
-    SearchQuery, WriteMode,
-    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder},
+    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder,SearchQuery},
     pokemon::Pokemon,
 };
-use clap::ValueEnum;
 use memmap2::Mmap;
 use rayon::iter::{ParallelBridge, ParallelIterator};
+use strum::{Display, EnumString};
 // use serde::Deserialize;
 use std::{
     // fs::File,
     collections::HashSet,
     ffi::OsStr,
     fs::File,
-    io::{self, BufRead, BufWriter},
-    path::Path,
+    io::{self, BufRead, BufWriter, Write},
+    path::Path, str::FromStr,
 };
 
 pub type SingleSearchReturn = Option<Pokemon>;
@@ -76,10 +75,9 @@ impl PokedexSearchResualt {
         let file = File::create(fp)
             .unwrap_or_else(|e| panic!("sorry rsdex could not create your file because {e}"));
 
-        // let pokemon:&[u8] = &self.to_vec().iter().map(|pkmn|pkmn.get_data_as_string(detail_level)).map(|s|s.as_bytes()).flatten().copied().collect::<Vec<u8>>();
         let mut writer = BufWriter::new(file);
 
-        // let vec = self.to_vec();
+       
         //tries to determine write mode if not set
         if write_mode.is_none() {
             write_mode = match WriteMode::from_str(
@@ -87,7 +85,7 @@ impl PokedexSearchResualt {
                     .unwrap_or_else(|| OsStr::new("extension missing"))
                     .to_str()
                     .expect("sorry the file path isn't valid unicode"),
-                true,
+                // true,
             ) {
                 Ok(w) => Some(w),
                 Err(_) => {
@@ -120,6 +118,70 @@ impl Default for PokedexSearchResualt {
     }
 }
 // const POKEDEX_DATA = include!()
+#[derive(Clone, Display,EnumString)]
+#[strum(serialize_all = "lowercase")]
+pub enum WriteMode {
+    Json,
+    Jsonl,
+    // Guess,
+    Csv,
+}
+
+impl WriteMode {
+    fn write<W: Write>(
+        &self,
+        writer: &mut W,
+        data: &[Pokemon],
+        detail_level: u8,
+    ) -> std::io::Result<()> {
+        // let mut writer = BufWriter::new(file);
+
+        match self {
+            WriteMode::Json => {
+                writer.write_all(serde_json::to_string_pretty(&data)?.as_bytes())?;
+            }
+
+            WriteMode::Jsonl => {
+                for pkmn in data {
+                    writer.write_all(
+                        (serde_json::to_string(&pkmn.get_as_map(detail_level))? + "\n").as_bytes(),
+                    )?;
+                }
+            }
+            // WriteMode::Guess => {
+            //     return Err(std::io::Error::other(
+            //         "could not set the write mode automaticly please set it manuely",
+            //     ));
+            // }
+            WriteMode::Csv => {
+                for (i, pkmn) in data.iter().enumerate() {
+                    let mut string = String::new();
+                    let vec = pkmn.get_as_vec(detail_level);
+                    if i == 0 {
+                        let mut head_string = String::new();
+                        for (k, _) in &vec {
+                            head_string.push_str(k);
+                            head_string.push(',');
+                        }
+                        head_string.pop();
+                        head_string.push('\n');
+                        writer.write_all(head_string.as_bytes())?;
+                    }
+
+                    for (_, v) in vec {
+                        string.push_str(&v);
+                        string.push(',');
+                    }
+                    string.pop();
+                    string.push('\n');
+                    writer.write_all(string.as_bytes())?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
 
 include!(concat!(env!("OUT_DIR"), "/pokedex_data.rs"));
 
@@ -221,7 +283,7 @@ pub trait Pokedex {
             if value.finds_single() {
                 match self.search(&value).get_if_single() {
                     Some(value) => singles.push(value.clone()),
-                    None => panic!("i did something wrong  (search many)"),
+                    None => eprintln!("this should never fail  (search many)"),
                 }
             } else {
                 many.merge(&mut self.search(&value));

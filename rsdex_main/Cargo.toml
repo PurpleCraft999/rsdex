@@ -7,8 +7,6 @@ license = "MIT"
 repository = "https://github.com/PurpleCraft999/rsdex"
 authors = ["PurpleCraft999"]
 readme = "../README.md"
-# include = ["pokedex.jsonl","src/","build.rs","/README.md"]
-
 
 [dependencies]
 rayon = "1.11.0"
@@ -19,11 +17,9 @@ strum = { version = "0.27.2", features = ["derive"] }
 memmap2 = "0.9.9"
 strsim = "0.11.1"
 
-
 [build-dependencies]
 serde={workspace = true}
 serde_json ={ workspace = true}
-
 
 # The profile that 'dist' will build with
 [profile.dist]
