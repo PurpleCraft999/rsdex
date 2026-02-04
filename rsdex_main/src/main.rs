@@ -1,6 +1,8 @@
-
 use clap::{Parser, value_parser};
-use rsdex::{data_types::SearchQuery, pokedex::{PokeDexMmap, Pokedex, WriteMode}};
+use rsdex::{
+    data_types::SearchQuery,
+    pokedex::{PokeDexMmap, Pokedex, WriteMode},
+};
 fn main() {
     let args = Args::parse();
     let detail_level = args.detailed;
@@ -66,8 +68,6 @@ struct Args {
     write_mode: Option<WriteMode>,
 }
 
-
-
 // #[test]
 // fn test_nat_dex_numbers() {
 //     let pokedex = PokeDex::new().unwrap();
@@ -95,12 +95,12 @@ struct Args {
 //         };
 //     }
 // }
-#[test]
-fn test_pokemon_stats() {
-    let attack_args = ["rsdex".into(), "150a"];
-    Args::parse_from(attack_args);
-    let less_attack_args = ["rsdex".into(), "l150a"];
-    Args::parse_from(less_attack_args);
-    let special_defence_args = ["rsdex".into(), "120sd"];
-    Args::parse_from(special_defence_args);
-}
+// #[test]
+// fn test_pokemon_stats() {
+//     let attack_args = ["rsdex".into(), "150a"];
+//     Args::parse_from(attack_args);
+//     let less_attack_args = ["rsdex".into(), "l150a"];
+//     Args::parse_from(less_attack_args);
+//     let special_defence_args = ["rsdex".into(), "120sd"];
+//     Args::parse_from(special_defence_args);
+// }

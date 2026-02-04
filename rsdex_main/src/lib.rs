@@ -1,9 +1,8 @@
 use strsim::damerau_levenshtein;
 
+pub mod data_types;
 pub mod pokedex;
 pub mod pokemon;
-pub mod data_types;
-
 
 pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<String> {
     options
@@ -15,4 +14,43 @@ pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<Strin
         .filter(|(num, s)| *num < 3 && string != s)
         .map(|(_, s)| s)
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    // use crate::{pokedex::Pokedex, pokemon::Pokemon};
+
+    use crate::{
+        pokedex::{PokeDexMmap, Pokedex},
+        pokemon::Pokemon,
+    };
+
+    struct PokemonD0<'a> {
+        nat_dex_num: u16,
+        name: &'a str,
+    }
+    impl PokemonD0<'_> {
+        fn matches(&self, find: Pokemon) {
+            assert_eq!(&self.name, find.get_name());
+            assert_eq!(&self.nat_dex_num, find.get_dex_number());
+        }
+    }
+
+    #[test]
+    fn test_pokedex_on_bulbasaur() {
+        let find_pokemon = PokemonD0 {
+            name: "bulbasaur",
+            nat_dex_num: 1,
+        };
+        let dex = PokeDexMmap::new().unwrap();
+
+        match dex.find_by_natinal_dex_number(&1) {
+            Some(p) => find_pokemon.matches(p),
+            None => panic!("pokedex somehow broke"),
+        }
+        match dex.find_by_name(find_pokemon.name) {
+            Some(p) => find_pokemon.matches(p),
+            None => panic!("it broke"),
+        }
+    }
 }

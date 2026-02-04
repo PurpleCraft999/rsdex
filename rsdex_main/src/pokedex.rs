@@ -1,5 +1,5 @@
 use crate::{
-    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder,SearchQuery},
+    data_types::{EggGroup, PokedexColor, PokemonType, SearchQuery, StatWithOrder},
     pokemon::Pokemon,
 };
 use memmap2::Mmap;
@@ -12,7 +12,8 @@ use std::{
     ffi::OsStr,
     fs::File,
     io::{self, BufRead, BufWriter, Write},
-    path::Path, str::FromStr,
+    path::Path,
+    str::FromStr,
 };
 
 pub type SingleSearchReturn = Option<Pokemon>;
@@ -77,7 +78,6 @@ impl PokedexSearchResualt {
 
         let mut writer = BufWriter::new(file);
 
-       
         //tries to determine write mode if not set
         if write_mode.is_none() {
             write_mode = match WriteMode::from_str(
@@ -118,7 +118,7 @@ impl Default for PokedexSearchResualt {
     }
 }
 // const POKEDEX_DATA = include!()
-#[derive(Clone, Display,EnumString)]
+#[derive(Clone, Display, EnumString)]
 #[strum(serialize_all = "lowercase")]
 pub enum WriteMode {
     Json,
@@ -251,7 +251,7 @@ pub trait Pokedex {
     fn find_by_natinal_dex_number(&self, dex_num: &u16) -> SingleSearchReturn {
         self.find_single_pokemon(|pokemon| pokemon.get_dex_number() == dex_num)
     }
-    fn find_by_name(&self, name: &String) -> SingleSearchReturn {
+    fn find_by_name(&self, name: &str) -> SingleSearchReturn {
         self.find_single_pokemon(|pkmn| pkmn.get_name() == name)
     }
     fn find_by_color(&self, color: &PokedexColor) -> MultiSearchReturn {

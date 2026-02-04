@@ -8,8 +8,6 @@ use crate::data_types::{
     stat_matches_ordering,
 };
 
-
-
 #[derive(Deserialize, Clone, Serialize, PartialEq, Eq, Hash, Debug)]
 pub struct Pokemon {
     name: String,

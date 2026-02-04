@@ -209,9 +209,6 @@ pub enum BodyShape {
     Blob,
 }
 
-
-
-
 #[derive(Clone, Display)]
 pub enum SearchQuery {
     NatDex { dex_num: u16 },
@@ -269,16 +266,6 @@ impl SearchQuery {
             "sorry we couldnt parse the info".into()
         }
     }
-    // fn parser_restricted(input: &str) -> Result<SearchValue, String> {
-    //     match Self::parser(input) {
-    //         Ok(value) => match value {
-    //             Self::Name { .. } => Err("cant have name for second arg".into()),
-    //             Self::NatDex { .. } => Err("cant have dex num for second num".into()),
-    //             ok => Ok(ok),
-    //         },
-    //         Err(e) => Err(e),
-    //     }
-    // }
     pub fn finds_single(&self) -> bool {
         matches!(self, SearchQuery::Name { .. } | SearchQuery::NatDex { .. })
     }
