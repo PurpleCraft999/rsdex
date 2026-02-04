@@ -1,7 +1,7 @@
 [package]
 name = "rsdex_lib"
-version = "0.1.60"
 edition = "2024"
+version = "0.1.70"
 description = "a little tool that behaves as a pokedex"
 license = "MIT"
 repository = "https://github.com/PurpleCraft999/rsdex"
