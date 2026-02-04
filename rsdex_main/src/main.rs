@@ -1,5 +1,5 @@
 use clap::{Parser, value_parser};
-use rsdex::{
+use rsdex_lib::{
     data_types::SearchQuery,
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
 };
@@ -67,40 +67,3 @@ struct Args {
     #[arg(long, requires = "file_path")]
     write_mode: Option<WriteMode>,
 }
-
-// #[test]
-// fn test_nat_dex_numbers() {
-//     let pokedex = PokeDex::new().unwrap();
-//     for dex_num in 1..=MAX_POKEDEX_NUM {
-//         let args = ["rsdex".into(), dex_num.to_string()];
-//         let args = Args::parse_from(args);
-//         match args.search_values {
-//             SearchValue::NatDex { dex_num } => {
-//                 pokedex.find_by_natinal_dex_number(&dex_num).unwrap()
-//             }
-//             e => panic!("nat dex test failed: number:{dex_num},value:{e}"),
-//         };
-//     }
-// }
-
-// #[test]
-// fn test_pokemon_names() {
-//     let pokedex = PokeDex::new().unwrap();
-//     for name in POKEMON_NAME_ARRAY {
-//         let args = ["rsdex", &name];
-//         let args = Args::parse_from(args);
-//         match args.search_values {
-//             SearchValue::Name { name } => pokedex.find_by_name(&name).unwrap(),
-//             e => panic!("name test failed: name:{},value:{e}", &name),
-//         };
-//     }
-// }
-// #[test]
-// fn test_pokemon_stats() {
-//     let attack_args = ["rsdex".into(), "150a"];
-//     Args::parse_from(attack_args);
-//     let less_attack_args = ["rsdex".into(), "l150a"];
-//     Args::parse_from(less_attack_args);
-//     let special_defence_args = ["rsdex".into(), "120sd"];
-//     Args::parse_from(special_defence_args);
-// }
