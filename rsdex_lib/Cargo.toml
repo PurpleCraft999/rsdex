@@ -8,6 +8,10 @@ repository.workspace = true
 authors = ["PurpleCraft999"]
 readme.workspace = true
 
+
+[lib]
+path = "src/lib.rs"
+
 [dependencies]
 rayon = "1.11.0"
 serde_json ={ workspace = true}
