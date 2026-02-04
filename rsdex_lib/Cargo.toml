@@ -4,7 +4,7 @@ edition = "2024"
 version.workspace = true
 description = "a little tool that behaves as a pokedex"
 license = "MIT"
-repository = "https://github.com/PurpleCraft999/rsdex"
+repository.workspace = true
 authors = ["PurpleCraft999"]
 readme = "../README.md"
 

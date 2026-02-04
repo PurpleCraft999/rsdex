@@ -3,8 +3,7 @@ name = "rsdex_main"
 license = "MIT"
 edition = "2024"
 version.workspace = true
-
-repository = "https://github.com/PurpleCraft999/rsdex"
+repository.workspace = true
 authors = ["PurpleCraft999"]
 readme = "../README.md"
 
@@ -20,6 +19,6 @@ dist = true
 
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }
-rsdex_lib = { path = "../../rsdex/rsdex_lib"}
+rsdex_lib = { path = "../../rsdex/rsdex_lib/"}
 
 

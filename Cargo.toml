@@ -3,6 +3,11 @@ resolver = "2"
 members = ["rsdex_main","rsdex_lib"]
 default-members = ["rsdex_main","rsdex_lib"]
 package.version = "0.1.70"
+package.repository = "https://github.com/PurpleCraft999/rsdex"
+
+
+
+
 
 [workspace.dependencies]
 serde = {version = "1.0.228",features = ["derive"]}
@@ -15,7 +20,6 @@ lto = "thin"
 
 [package]
 name = "rsdex"
-
 
 [lib]
 path = "rsdex_lib/"
