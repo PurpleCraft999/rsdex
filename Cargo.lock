@@ -218,7 +218,7 @@ version = "0.0.0"
 
 [[package]]
 name = "rsdex_lib"
-version = "0.1.60"
+version = "0.1.70"
 dependencies = [
  "memmap2",
  "rayon",
@@ -230,7 +230,7 @@ dependencies = [
 
 [[package]]
 name = "rsdex_main"
-version = "0.1.7"
+version = "0.1.70"
 dependencies = [
  "clap",
  "rsdex_lib",

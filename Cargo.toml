@@ -2,8 +2,7 @@
 resolver = "2"
 members = ["rsdex_main","rsdex_lib"]
 default-members = ["rsdex_main","rsdex_lib"]
-package.version = "0.1.7"
-# package.include = ["README.md"]
+package.version = "0.1.70"
 
 [workspace.dependencies]
 serde = {version = "1.0.228",features = ["derive"]}
@@ -20,3 +19,8 @@ name = "rsdex"
 
 [lib]
 path = "rsdex_lib/"
+
+[[bin]]
+name = "rsdex"
+path = "rsdex_main/"
+
