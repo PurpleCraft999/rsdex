@@ -2,8 +2,6 @@
 resolver = "2"
 members = ["rsdex_main","rsdex_lib"]
 default-members = ["rsdex_main","rsdex_lib"]
-package.version = "0.1.70"
-package.repository = "https://github.com/PurpleCraft999/rsdex"
 
 
 
@@ -20,9 +18,19 @@ lto = "thin"
 
 [package]
 name = "rsdex"
+edition = "2024"
+version = "0.1.70"
+
+
+[workspace.package]
+edition = "2024"
+readme = "../README.md"
+repository = "https://github.com/PurpleCraft999/rsdex"
+version = "0.1.70"
 
 [lib]
-path = "rsdex_lib/"
+name="rsdex_lib"
+path = "src/lib.rs"
 
 [[bin]]
 name = "rsdex"

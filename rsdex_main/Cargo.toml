@@ -1,11 +1,11 @@
 [package]
 name = "rsdex_main"
 license = "MIT"
-edition = "2024"
+edition.workspace = true
 version.workspace = true
 repository.workspace = true
 authors = ["PurpleCraft999"]
-readme = "../README.md"
+readme.workspace = true
 
 
 

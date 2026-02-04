@@ -1,12 +1,12 @@
 [package]
 name = "rsdex_lib"
-edition = "2024"
+edition.workspace = true
 version.workspace = true
 description = "a little tool that behaves as a pokedex"
 license = "MIT"
 repository.workspace = true
 authors = ["PurpleCraft999"]
-readme = "../README.md"
+readme.workspace = true
 
 [dependencies]
 rayon = "1.11.0"
