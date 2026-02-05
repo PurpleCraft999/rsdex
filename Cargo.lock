@@ -213,6 +213,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsdex"
+version = "0.1.70"
+dependencies = [
+ "clap",
+ "rsdex_lib 0.1.70 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "rsdex_lib"
 version = "0.1.70"
 dependencies = [
@@ -225,11 +233,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "rsdex_main"
+name = "rsdex_lib"
 version = "0.1.70"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34c4a22e95ac79b9b22727fba7b3fbd6300701bc8d4143bd48029d8b7a2a4dab"
 dependencies = [
- "clap",
- "rsdex_lib",
+ "memmap2",
+ "rayon",
+ "serde",
+ "serde_json",
+ "strsim",
+ "strum",
 ]
 
 [[package]]

@@ -2,10 +2,10 @@
 name = "rsdex_lib"
 edition.workspace = true
 version.workspace = true
-description = "a little tool that behaves as a pokedex"
+description = "A library that allow you too search up pokemon based on data"
 license = "MIT"
 repository.workspace = true
-authors = ["PurpleCraft999"]
+authors.workspace = true
 readme.workspace = true
 
 
