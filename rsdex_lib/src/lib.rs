@@ -21,7 +21,7 @@ mod tests {
     // use crate::{pokedex::Pokedex, pokemon::Pokemon};
 
     use crate::{
-        pokedex::{PokeDexMmap, Pokedex},
+        pokedex::{Pokedex, PokedexStruct},
         pokemon::Pokemon,
     };
 
@@ -42,7 +42,7 @@ mod tests {
             name: "bulbasaur",
             nat_dex_num: 1,
         };
-        let dex = PokeDexMmap::new().unwrap();
+        let dex = PokedexStruct::new();
 
         match dex.find_by_natinal_dex_number(&1) {
             Some(p) => find_pokemon.matches(p),

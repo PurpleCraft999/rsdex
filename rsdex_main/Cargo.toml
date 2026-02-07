@@ -19,6 +19,6 @@ dist = true
 
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }
-rsdex_lib = { version = "0.1.70"}
+rsdex_lib = {path = "../rsdex_lib/",features = ["downloaded"],default-features = false}
 
 

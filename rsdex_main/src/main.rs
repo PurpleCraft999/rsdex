@@ -6,7 +6,7 @@ use rsdex_lib::{
 fn main() {
     let args = Args::parse();
     let detail_level = args.detailed;
-    let pokedex = match PokeDexMmap::new() {
+    let pokedex = match PokeDexMmap::new_err() {
         Ok(dex) => dex,
         Err(e) => panic!("could not build pokedex because: {e}"),
     };

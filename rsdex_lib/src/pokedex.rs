@@ -2,8 +2,14 @@ use crate::{
     data_types::{EggGroup, PokedexColor, PokemonType, SearchQuery, StatWithOrder},
     pokemon::Pokemon,
 };
+#[cfg(feature = "downloaded")]
 use memmap2::Mmap;
+#[cfg(feature = "downloaded")]
+use std::io::BufRead;
+
+#[cfg(feature = "downloaded")]
 use rayon::iter::{ParallelBridge, ParallelIterator};
+
 use strum::{Display, EnumString};
 // use serde::Deserialize;
 use std::{
@@ -11,7 +17,7 @@ use std::{
     collections::HashSet,
     ffi::OsStr,
     fs::File,
-    io::{self, BufRead, BufWriter, Write},
+    io::{self, BufWriter, Write},
     path::Path,
     str::FromStr,
 };
@@ -183,13 +189,58 @@ impl WriteMode {
     }
 }
 
+#[cfg(feature = "online")]
+
+pub struct PokedexOnline {}
+#[cfg(feature = "online")]
+
+impl PokedexOnline {
+    pub fn new() -> Self {
+        use reqwest::blocking::Client;
+
+        Self {}
+    }
+}
+
+#[cfg(feature = "online")]
+impl Pokedex for PokedexOnline {
+    fn find_many_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
+        &self,
+        filter: P,
+    ) -> MultiSearchReturn {
+        Vec::new()
+    }
+    fn find_single_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
+        &self,
+        find: P,
+    ) -> SingleSearchReturn {
+        // let s =match  reqwest::blocking::get("https://pokeapi.co/api/v2/pokemon/ditto"){
+        //     Ok(u)=>u,
+        //     Err(_) =>return None
+        // };
+        // // serde_json::from_str::<Pokemon>(s.text().unwrap())
+        None
+    }
+}
+
+include!(concat!(env!("OUT_DIR"), "/max_pokedex_num.rs"));
+
+#[cfg(feature = "downloaded")]
 include!(concat!(env!("OUT_DIR"), "/pokedex_data.rs"));
 
+#[cfg(all(feature = "online", not(feature = "downloaded")))]
+pub type PokedexStruct = PokedexOnline;
+
+#[cfg(feature = "downloaded")]
+pub type PokedexStruct = PokeDexMmap;
+
+#[cfg(feature = "downloaded")]
 pub struct PokeDexMmap {
     mmap: Mmap,
 }
+#[cfg(feature = "downloaded")]
 impl PokeDexMmap {
-    pub fn new() -> Result<Self, std::io::Error> {
+    pub fn new_err() -> Result<Self, std::io::Error> {
         let mut mmap = memmap2::MmapOptions::new()
             .len(POKEDEX_DATA.len())
             .map_anon()?;
@@ -197,6 +248,11 @@ impl PokeDexMmap {
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Self::new_err().expect("could not build PokedexMmap")
+    }
+
     #[allow(clippy::type_complexity)]
     fn mmap_to_pokemap(
         &self,
@@ -216,7 +272,7 @@ impl PokeDexMmap {
             .map(|line| serde_json::from_str::<Pokemon>(&line).unwrap())
     }
 }
-
+#[cfg(feature = "downloaded")]
 impl Pokedex for PokeDexMmap {
     fn find_single_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
         &self,
