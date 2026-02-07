@@ -33,11 +33,6 @@ fn include_needed_data() {
     let pokedex_data_path = Path::new(&out_dir).join("max_pokedex_num.rs");
     let max_pokemon_num = format!("pub const MAX_POKEDEX_NUM: u16 = {};", MAX_POKEDEX_NUM);
     std::fs::write(pokedex_data_path, max_pokemon_num).unwrap();
-
-    // #[cfg(feature = "online")]
-    // {
-
-    // }
 }
 
 #[cfg(feature = "downloaded")]

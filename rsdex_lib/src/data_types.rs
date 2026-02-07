@@ -219,8 +219,8 @@ pub enum SearchQuery {
     EggGroup { group: EggGroup },
 }
 // #[cfg(feature = "downloaded")]
-use crate::pokedex::MAX_POKEDEX_NUM;
-use crate::pokemon::get_name_array;
+
+use crate::pokedex::{MAX_POKEDEX_NUM, POKEMON_NAME_ARRAY};
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
         // let pokemon_names = Po;

@@ -4,9 +4,6 @@ use crate::{
 };
 #[cfg(feature = "downloaded")]
 use memmap2::Mmap;
-#[cfg(feature = "online")]
-use rustemon::client::RustemonClient;
-
 #[cfg(feature = "downloaded")]
 use std::io::BufRead;
 
@@ -193,33 +190,15 @@ impl WriteMode {
 }
 
 #[cfg(feature = "online")]
-pub struct PokedexOnline {
-    pub(crate) client: RustemonClient,
-    pub(crate) run_time: tokio::runtime::Runtime,
-}
-#[cfg(feature = "online")]
-impl PokedexOnline {
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        use rustemon::client::{CACacheManager, RustemonClientBuilder};
 
-        let client = RustemonClientBuilder::<CACacheManager>::default()
-            .try_build()
-            .expect("could not build client");
-        let run_time = tokio::runtime::Builder::new_current_thread()
-            .enable_time()
-            .enable_io()
-            .build()
-            .unwrap();
-        Self { client, run_time }
-    }
-    pub fn block_on<F, T>(&self, future: F) -> T
-    where
-        F: Future<Output = Result<T, rustemon::error::Error>>,
-    {
-        self.run_time
-            .block_on(future)
-            .expect("could not make reqwest")
+pub struct PokedexOnline {}
+#[cfg(feature = "online")]
+
+impl PokedexOnline {
+    pub fn new() -> Self {
+        use reqwest::blocking::Client;
+
+        Self {}
     }
 }
 
@@ -227,26 +206,20 @@ impl PokedexOnline {
 impl Pokedex for PokedexOnline {
     fn find_many_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
         &self,
-        _filter: P,
+        filter: P,
     ) -> MultiSearchReturn {
-        unimplemented!()
+        Vec::new()
     }
     fn find_single_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
         &self,
-        _find: P,
+        find: P,
     ) -> SingleSearchReturn {
-        unimplemented!("this should never be reached")
-    }
-    fn find_by_name(&self, name: &str) -> SingleSearchReturn {
-        let pokemon = self.block_on(rustemon::pokemon::pokemon::get_by_name(name, &self.client));
-        self.rustemon_pokemon_to_rsdex_pokemon(pokemon)
-    }
-    fn find_by_natinal_dex_number(&self, dex_num: &u16) -> SingleSearchReturn {
-        let pokemon = self.block_on(rustemon::pokemon::pokemon::get_by_id(
-            *dex_num as i64,
-            &self.client,
-        ));
-        self.rustemon_pokemon_to_rsdex_pokemon(pokemon)
+        // let s =match  reqwest::blocking::get("https://pokeapi.co/api/v2/pokemon/ditto"){
+        //     Ok(u)=>u,
+        //     Err(_) =>return None
+        // };
+        // // serde_json::from_str::<Pokemon>(s.text().unwrap())
+        None
     }
 }
 
