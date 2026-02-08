@@ -184,7 +184,7 @@ use crate::pokedex::POKEMON_NAME_ARRAY;
 pub fn get_name_array() -> [&'static str; MAX_POKEDEX_NUM as usize] {
     #[cfg(feature = "downloaded")]
     {
-        return POKEMON_NAME_ARRAY;
+        POKEMON_NAME_ARRAY
     }
     //
     #[cfg(feature = "online")]

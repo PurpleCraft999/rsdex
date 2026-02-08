@@ -1,3 +1,6 @@
+#[cfg(all(feature = "downloaded",feature = "online"))]
+compile_error!("can not have both 'downloaded' and 'online' features aviliable");
+
 use strsim::damerau_levenshtein;
 
 pub mod data_types;
