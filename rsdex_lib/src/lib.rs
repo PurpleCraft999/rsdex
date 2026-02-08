@@ -16,6 +16,15 @@ pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<Strin
         .collect()
 }
 
+// fn get_request(url:&str)->reqwest::blocking::Response{
+//     let response = match reqwest::blocking::get(url){
+//         Ok(r)=>r,
+//         Err(e)=>panic!("could not get request because {e}")
+//     };
+
+//     response
+// }
+
 #[cfg(test)]
 mod tests {
     // use crate::{pokedex::Pokedex, pokemon::Pokemon};

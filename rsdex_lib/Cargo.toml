@@ -14,15 +14,20 @@ readme.workspace = true
 path = "src/lib.rs"
 
 [dependencies]
-rayon = {version = "1.11.0",optional = true}
+
 serde_json ={ workspace = true}
 serde = {workspace = true}
 strum = { version = "0.27.2", features = ["derive"] }
-memmap2 = {version="0.9.9",optional = true}
 strsim = "0.11.1"
 
+#downloaded crates
+rayon = {version = "1.11.0",optional = true}
+memmap2 = {version="0.9.9",optional = true}
 
-reqwest = {version = "0.13.2",optional = true,features = ["blocking"]}
+#online crates
+rustemon = {version = "4.5.0",optional = true}
+minreq = {version = "2.14.1",optional = true,features = ["https"]}
+tokio = {version = "1.49.0",features = ["rt"],optional = true}
 
 [build-dependencies]
 serde={workspace = true}
@@ -36,5 +41,5 @@ lto = "thin"
 
 [features]
 downloaded = ["memmap2","rayon"]
-online = ["reqwest"]
+online = ["rustemon","minreq","tokio"]
 default = ["downloaded"]

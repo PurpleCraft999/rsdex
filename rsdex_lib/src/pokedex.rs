@@ -4,6 +4,9 @@ use crate::{
 };
 #[cfg(feature = "downloaded")]
 use memmap2::Mmap;
+#[cfg(feature = "online")]
+use rustemon::client::RustemonClient;
+
 #[cfg(feature = "downloaded")]
 use std::io::BufRead;
 
@@ -57,7 +60,7 @@ impl PokedexSearchResualt {
     pub fn print_data(&self, detail_level: u8) {
         // let vec = self.to_vec();
         if self.vec.is_empty() {
-            println!("sorry we couldnt find any thing matching out data");
+            println!("sorry we couldnt find any thing matching our data");
             return;
         }
         for pokemon in &self.vec {
@@ -190,15 +193,33 @@ impl WriteMode {
 }
 
 #[cfg(feature = "online")]
-
-pub struct PokedexOnline {}
+pub struct PokedexOnline {
+    pub(crate) client: RustemonClient,
+    pub(crate) run_time: tokio::runtime::Runtime,
+}
 #[cfg(feature = "online")]
-
 impl PokedexOnline {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        use reqwest::blocking::Client;
+        use rustemon::client::{CACacheManager, RustemonClientBuilder};
 
-        Self {}
+        let client = RustemonClientBuilder::<CACacheManager>::default()
+            .try_build()
+            .expect("could not build client");
+        let run_time = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .enable_io()
+            .build()
+            .unwrap();
+        Self { client, run_time }
+    }
+    pub fn block_on<F, T>(&self, future: F) -> T
+    where
+        F: Future<Output = Result<T, rustemon::error::Error>>,
+    {
+        self.run_time
+            .block_on(future)
+            .expect("could not make reqwest")
     }
 }
 
@@ -206,20 +227,26 @@ impl PokedexOnline {
 impl Pokedex for PokedexOnline {
     fn find_many_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
         &self,
-        filter: P,
+        _filter: P,
     ) -> MultiSearchReturn {
-        Vec::new()
+        unimplemented!()
     }
     fn find_single_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
         &self,
-        find: P,
+        _find: P,
     ) -> SingleSearchReturn {
-        // let s =match  reqwest::blocking::get("https://pokeapi.co/api/v2/pokemon/ditto"){
-        //     Ok(u)=>u,
-        //     Err(_) =>return None
-        // };
-        // // serde_json::from_str::<Pokemon>(s.text().unwrap())
-        None
+        unimplemented!("this should never be reached")
+    }
+    fn find_by_name(&self, name: &str) -> SingleSearchReturn {
+        let pokemon = self.block_on(rustemon::pokemon::pokemon::get_by_name(name, &self.client));
+        self.rustemon_pokemon_to_rsdex_pokemon(pokemon)
+    }
+    fn find_by_natinal_dex_number(&self, dex_num: &u16) -> SingleSearchReturn {
+        let pokemon = self.block_on(rustemon::pokemon::pokemon::get_by_id(
+            *dex_num as i64,
+            &self.client,
+        ));
+        self.rustemon_pokemon_to_rsdex_pokemon(pokemon)
     }
 }
 
@@ -337,9 +364,8 @@ pub trait Pokedex {
         let mut many = PokedexSearchResualt::default();
         for value in values {
             if value.finds_single() {
-                match self.search(&value).get_if_single() {
-                    Some(value) => singles.push(value.clone()),
-                    None => eprintln!("this should never fail  (search many)"),
+                if let Some(value)  = self.search(&value).get_if_single() {
+                    singles.push(value.clone())
                 }
             } else {
                 many.merge(&mut self.search(&value));

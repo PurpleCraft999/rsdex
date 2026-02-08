@@ -3,9 +3,12 @@ use std::{collections::HashMap, fmt::Display};
 use serde::{Deserialize, Serialize};
 
 // use crate::pokedex::PokedexColor;
-use crate::data_types::{
-    BodyShape, EggGroup, PokedexColor, PokemonStat, PokemonType, StatWithOrder,
-    stat_matches_ordering,
+use crate::{
+    data_types::{
+        BodyShape, EggGroup, PokedexColor, PokemonStat, PokemonType, StatWithOrder,
+        stat_matches_ordering,
+    },
+    pokedex::MAX_POKEDEX_NUM,
 };
 
 #[derive(Deserialize, Clone, Serialize, PartialEq, Eq, Hash, Debug)]
@@ -174,4 +177,82 @@ where
 }
 pub trait Null<'de>: Deserialize<'de> {
     fn null() -> Self;
+}
+
+#[cfg(feature = "downloaded")]
+use crate::pokedex::POKEMON_NAME_ARRAY;
+pub fn get_name_array() -> [&'static str; MAX_POKEDEX_NUM as usize] {
+    #[cfg(feature = "downloaded")]
+    {
+        return POKEMON_NAME_ARRAY;
+    }
+    //
+    #[cfg(feature = "online")]
+    {
+        // use reqwest::blocking::Response;
+
+        let response =minreq::get("https://raw.githubusercontent.com/PurpleCraft999/rsdex/refs/heads/master/pokemon_names.json").send().expect("could not send name array request");
+
+        let vec = serde_json::from_slice::<Vec<String>>(response.as_bytes())
+            .expect("response into vec failed");
+
+        let vec: Vec<&'static mut str> = vec
+            .into_iter()
+            .map(|s| Box::leak(s.into_boxed_str()))
+            .collect();
+        let vec: Vec<&str> = vec.into_iter().map(|s| &*s).collect();
+        TryInto::<[&str; MAX_POKEDEX_NUM as usize]>::try_into(vec)
+            .expect("array length was not equal to MAX_POKEDEX_NUM")
+
+        // serde_json::from_slice::<Vec<&str>>(response.text().expect("retiving name array took to long").as_bytes()).expect("could not parse array ").try_into().expect("array length was not equal to MAX_POKEDEX_NUM")
+    }
+}
+
+#[cfg(feature = "online")]
+impl crate::pokedex::PokedexOnline {
+    pub fn rustemon_pokemon_to_rsdex_pokemon(
+        &self,
+        pokemon: rustemon::model::pokemon::Pokemon,
+    ) -> Option<Pokemon> {
+        use std::str::FromStr;
+
+        use rustemon::Follow;
+        let pokemon_info = self.block_on(pokemon.species.follow(&self.client));
+
+        let type2 = pokemon.types.get(1);
+        let type2 = match type2 {
+            Some(t) => &t.type_.name,
+            None => "null",
+        };
+        let egg2 = pokemon_info.egg_groups.get(1);
+        let egg2 = match egg2 {
+            Some(t) => &t.name,
+            None => "null",
+        };
+        let mut genus = String::new();
+        for i in pokemon_info.genera {
+            if i.language.name == "en" {
+                genus = i.genus;
+                break;
+            }
+        }
+
+        Some(Pokemon {
+            name: pokemon.name,
+            national_dex_number: pokemon.id as u16,
+            type1: PokemonType::from_str(&pokemon.types[0].type_.name).ok()?,
+            type2: PokemonType::from_str(type2).unwrap_or(PokemonType::None),
+            color: PokedexColor::from_str(&pokemon_info.color.name).ok()?,
+            hp: pokemon.stats[0].base_stat as u8,
+            attack: pokemon.stats[1].base_stat as u8,
+            defence: pokemon.stats[2].base_stat as u8,
+            special_attack: pokemon.stats[3].base_stat as u8,
+            special_defence: pokemon.stats[4].base_stat as u8,
+            speed: pokemon.stats[5].base_stat as u8,
+            egg_group1: EggGroup::from_str(&pokemon_info.egg_groups[0].name).ok()?,
+            egg_group2: EggGroup::from_str(egg2).unwrap_or(EggGroup::None),
+            shape: BodyShape::from_str(&pokemon_info.shape?.name).ok()?,
+            genus,
+        })
+    }
 }

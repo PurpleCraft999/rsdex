@@ -219,12 +219,12 @@ pub enum SearchQuery {
     EggGroup { group: EggGroup },
 }
 // #[cfg(feature = "downloaded")]
-
-use crate::pokedex::{MAX_POKEDEX_NUM, POKEMON_NAME_ARRAY};
+use crate::pokedex::MAX_POKEDEX_NUM;
+use crate::pokemon::get_name_array;
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
         // let pokemon_names = Po;
-        for name in POKEMON_NAME_ARRAY {
+        for name in get_name_array() {
             if input == name {
                 return Ok(Self::Name { name: input.into() });
             }
@@ -250,7 +250,7 @@ impl SearchQuery {
     }
     fn parsing_error(input: &str) -> String {
         let mut err_vec = Vec::new();
-        err_vec.append(&mut compute_similarity(input, &POKEMON_NAME_ARRAY));
+        err_vec.append(&mut compute_similarity(input, &get_name_array()));
         err_vec.append(&mut compute_similarity(input, PokedexColor::VARIANTS));
         err_vec.append(&mut compute_similarity(input, PokemonType::VARIANTS));
 
