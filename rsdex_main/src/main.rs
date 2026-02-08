@@ -6,10 +6,7 @@ use rsdex_lib::{
 fn main() {
     let args = Args::parse();
     let detail_level = args.detailed;
-    let pokedex = match PokeDexMmap::new_err() {
-        Ok(dex) => dex,
-        Err(e) => panic!("could not build pokedex because: {e}"),
-    };
+    let pokedex =  PokedexStruct::new();
     let pokemon = pokedex.multi_search(args.search_queries);
 
     if let Some(fp) = args.file_path {

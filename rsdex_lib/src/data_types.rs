@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, str::FromStr};
 
-use crate::{compute_similarity, pokemon::Null};
+use crate::{compute_similarity, pokemon::{Null, get_name_array}};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 
@@ -220,7 +220,7 @@ pub enum SearchQuery {
 }
 // #[cfg(feature = "downloaded")]
 
-use crate::pokedex::{MAX_POKEDEX_NUM, POKEMON_NAME_ARRAY};
+use crate::pokedex::{MAX_POKEDEX_NUM};
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
         // let pokemon_names = Po;
