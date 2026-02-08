@@ -8,7 +8,6 @@
 
 
 
-
 A  little command line tool written in rust that acts like the pokedex
 
 
@@ -86,8 +85,3 @@ when you do <code> rsdex red --fp "red_pokemon.json"</code> it will save the rea
 you can also add the --write_mode write mode to the end of it to change the write mode to another type
 it also takes into acount the level of detail set 
 
-
-
-----------------------------------------------------------
-
-library for public use https://crates.io/crates/rsdex_lib
