@@ -19,7 +19,7 @@ use std::io::BufRead;
 use std::{env, path::Path};
 
 use serde::Deserialize;
-///this only exist to not have to deseirialze the entire `Pokemon` struct when parsing
+///this only exist to not have to deseirialze the entire `Pokemon` struct when parsing for the `make_pokemon_name_array!` macro
 #[derive(Debug, Deserialize)]
 pub struct PokemonName {
     pub name: String,
@@ -33,11 +33,6 @@ fn include_needed_data() {
     let pokedex_data_path = Path::new(&out_dir).join("max_pokedex_num.rs");
     let max_pokemon_num = format!("pub const MAX_POKEDEX_NUM: u16 = {};", MAX_POKEDEX_NUM);
     std::fs::write(pokedex_data_path, max_pokemon_num).unwrap();
-
-    // #[cfg(feature = "online")]
-    // {
-
-    // }
 }
 
 #[cfg(feature = "downloaded")]
@@ -69,7 +64,7 @@ fn on_pokedex_data_change() {
         pokedex_data_const
     );
     let pokemon_name_arr = format!(
-        "pub(crate) static POKEMON_NAME_ARRAY:[&str;{}] = {:?};",
+        "pub static POKEMON_NAME_ARRAY:[&str;{}] = {:?};",
         pokemon_arr.len(),
         pokemon_arr
     );

@@ -1,12 +1,15 @@
 use clap::{Parser, value_parser};
 use rsdex_lib::{
     data_types::SearchQuery,
-    pokedex::{Pokedex, PokedexStruct, WriteMode},
+    pokedex::{PokeDexMmap, Pokedex, WriteMode},
 };
 fn main() {
     let args = Args::parse();
     let detail_level = args.detailed;
-    let pokedex = PokedexStruct::new();
+    let pokedex = match PokeDexMmap::new_err() {
+        Ok(dex) => dex,
+        Err(e) => panic!("could not build pokedex because: {e}"),
+    };
     let pokemon = pokedex.multi_search(args.search_queries);
 
     if let Some(fp) = args.file_path {
