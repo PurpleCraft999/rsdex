@@ -3,6 +3,9 @@ use rsdex_lib::{
     data_types::SearchQuery,
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
 };
+
+include!(concat!(env!("OUT_DIR"), "/readme.rs"));
+
 fn main() {
     let args = Args::parse();
     let detail_level = args.detailed;
@@ -10,6 +13,19 @@ fn main() {
         Ok(dex) => dex,
         Err(e) => panic!("could not build pokedex because: {e}"),
     };
+
+    if args.help {
+        // println!("{}",READ_ME);
+        termimad::print_text(READ_ME);
+
+        return;
+    }
+
+    if args.search_queries.is_empty() {
+        println!("please add an argument or use --help for help");
+        return;
+    }
+
     let pokemon = pokedex.multi_search(args.search_queries);
 
     if let Some(fp) = args.file_path {
@@ -26,7 +42,7 @@ fn main() {
 ///
 ///a thanks to PokéApi for the data
 #[derive(clap::Parser)]
-#[command(version)]
+#[command(version, disable_help_flag = true)]
 struct Args {
     ///takes a pokemon's name,color,type,stat,egg group or dex number
     ///
@@ -66,4 +82,7 @@ struct Args {
     file_path: Option<String>,
     #[arg(long, requires = "file_path")]
     write_mode: Option<WriteMode>,
+
+    #[arg(long)]
+    help: bool,
 }

@@ -21,6 +21,8 @@ fn on_pokedex_data_change() {
     // let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     // let data_string = manifest_dir+"/pokedex.jsonl";
+    println!("cargo::rerun-if-changed=pokedex.jsonl");
+
     let pokedex_data_const = include_bytes!("pokedex.jsonl");
 
     let mut vec = Vec::with_capacity(MAX_POKEDEX_NUM as usize);
@@ -34,7 +36,6 @@ fn on_pokedex_data_change() {
         vec.try_into().expect("unable to turn vec into name_array");
 
     // let a = 1;
-    println!("cargo::rerun-if-changed=pokedex.jsonl");
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let pokedex_data_path = Path::new(&out_dir).join("pokedex_data.rs");
 

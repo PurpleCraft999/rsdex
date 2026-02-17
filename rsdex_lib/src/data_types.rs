@@ -115,7 +115,10 @@ pub enum PokemonStat {
 impl FromStr for PokemonStat {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if !s.contains(['1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+        //it cant be a stat if it doesnt have a number or one of the letters
+        if !s.contains([
+            '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'd', 'h', 's',
+        ]) {
             return Err("no number found".into());
         }
 

@@ -15,7 +15,7 @@ A  little command line tool written in rust that acts like the pokedex
 
 <h3>Rust</h3>
 if you have rust installed you can use 
-<code>cargo install rsdex</code>
+`cargo install rsdex`
 
 <h3>Windows</h3>
 go to the latest release and copy the power shell script into the command prompt and let it do its work
@@ -71,17 +71,16 @@ filtering by egg group is posible and for the egg groups that share a name with 
 
 
 <h3>Compound Searches</h3>
-if you do <code>rsdex blue fire</code> you will get cerulege because they are the only pokemon to both be blue and fire type 
-you cannot do <code>rsdex 1 2</code> because that will always resault in faliure same with pokemon names
+if you do `rsdex blue fire` you will get cerulege because they are the only pokemon to both be blue and fire type 
+you cannot do `rsdex 1 2` because that will always resault in faliure same with pokemon names
 
 
 <h2>Flags</h2>
 if you add --detailed or -d to the end of a search you'll get a more detailed summary
 Example
-<code>rsdex 1 -d </code>
+`rsdex 1 -d `
 
 <h3>Writing to file</h3>
-when you do <code> rsdex red --fp "red_pokemon.json"</code> it will save the reasults to the specified file path
+when you do ` rsdex red --fp "red_pokemon.json"` it will save the reasults to the specified file path
 you can also add the --write_mode write mode to the end of it to change the write mode to another type
 it also takes into acount the level of detail set 
-

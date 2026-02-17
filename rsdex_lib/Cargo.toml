@@ -22,7 +22,7 @@ strsim = "0.11.1"
 
 [build-dependencies]
 serde={workspace = true}
-serde_json ={ workspace = true}
+serde_json ={workspace = true}
 
 # The profile that 'dist' will build with
 [profile.dist]
