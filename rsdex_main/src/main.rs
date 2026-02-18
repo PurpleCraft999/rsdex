@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, value_parser};
 use rsdex_lib::{
     data_types::SearchQuery,
@@ -30,7 +32,7 @@ fn main() {
 
     if let Some(fp) = args.file_path {
         pokemon
-            .write_data_to_file(fp, detail_level, args.write_mode)
+            .write_data_to_file(&fp, detail_level, args.write_mode, args.pretty)
             .expect("something went wrong while saving your file");
         println!("writing succesfull")
     } else {
@@ -78,10 +80,12 @@ struct Args {
     #[arg(long, short,value_parser = value_parser!(u8).range(0..=5),default_value_t=0)]
     detailed: u8,
     ///will write to the given path with the specified data level in the format specified by write-mode
-    #[arg(long,aliases(["fp"]))]
-    file_path: Option<String>,
+    #[arg(long, alias("fp"))]
+    file_path: Option<PathBuf>,
     #[arg(long, requires = "file_path")]
     write_mode: Option<WriteMode>,
+    #[arg(long, requires = "file_path")]
+    pretty: bool,
 
     #[arg(long)]
     help: bool,

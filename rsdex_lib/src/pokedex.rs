@@ -12,7 +12,7 @@ use std::{
     ffi::OsStr,
     fs::File,
     io::{self, BufRead, BufWriter, Write},
-    path::Path,
+    path::PathBuf,
     str::FromStr,
 };
 
@@ -67,13 +67,14 @@ impl PokedexSearchResualt {
     }
     pub fn write_data_to_file(
         &self,
-        fp: String,
+        file_path: &PathBuf,
         detail_level: u8,
         mut write_mode: Option<WriteMode>,
+        pretty: bool,
     ) -> io::Result<()> {
-        println!("writing to {}", fp);
-        let fp = Path::new(&fp);
-        let file = File::create(fp)
+        println!("writing to {}", file_path.display());
+        // let fp = Path::new(&fp);
+        let file = File::create(file_path)
             .unwrap_or_else(|e| panic!("sorry rsdex could not create your file because {e}"));
 
         let mut writer = BufWriter::new(file);
@@ -81,7 +82,8 @@ impl PokedexSearchResualt {
         //tries to determine write mode if not set
         if write_mode.is_none() {
             write_mode = match WriteMode::from_str(
-                fp.extension()
+                file_path
+                    .extension()
                     .unwrap_or_else(|| OsStr::new("extension missing"))
                     .to_str()
                     .expect("sorry the file path isn't valid unicode"),
@@ -96,7 +98,7 @@ impl PokedexSearchResualt {
 
         write_mode
             .expect("invailed write_mode state: still None")
-            .write(&mut writer, &self.vec, detail_level)
+            .write(&mut writer, &self.vec, detail_level, pretty)
     }
 }
 impl From<SingleSearchReturn> for PokedexSearchResualt {
@@ -133,49 +135,67 @@ impl WriteMode {
         writer: &mut W,
         data: &[Pokemon],
         detail_level: u8,
-    ) -> std::io::Result<()> {
-        // let mut writer = BufWriter::new(file);
+        pretty: bool,
+    ) -> io::Result<()> {
+        if data.is_empty() {
+            return std::io::Result::Err(io::Error::other("data cant be empty"));
+        }
 
         match self {
             WriteMode::Json => {
-                writer.write_all(serde_json::to_string_pretty(&data)?.as_bytes())?;
-            }
-
-            WriteMode::Jsonl => {
+                //makes it a json array
+                writer.write_all("[".as_bytes())?;
+                let mut json_string = String::new();
                 for pkmn in data {
-                    writer.write_all(
-                        (serde_json::to_string(&pkmn.get_as_map(detail_level))? + "\n").as_bytes(),
-                    )?;
+                    let pkmap = &pkmn.get_as_map(detail_level);
+                    let pokemon_string = if pretty {
+                        serde_json::to_string_pretty(pkmap)?
+                    } else {
+                        serde_json::to_string(pkmap)?
+                    };
+                    json_string += (pokemon_string + ",").as_str();
                 }
+                //removes the trailing comma
+                json_string.pop();
+                writer.write_all(json_string.as_bytes())?;
+                writer.write_all("]".as_bytes())?;
             }
-            // WriteMode::Guess => {
-            //     return Err(std::io::Error::other(
-            //         "could not set the write mode automaticly please set it manuely",
-            //     ));
-            // }
-            WriteMode::Csv => {
-                for (i, pkmn) in data.iter().enumerate() {
-                    let mut string = String::new();
-                    let vec = pkmn.get_as_vec(detail_level);
-                    if i == 0 {
-                        let mut head_string = String::new();
-                        for (k, _) in &vec {
-                            head_string.push_str(k);
-                            head_string.push(',');
-                        }
-                        head_string.pop();
-                        head_string.push('\n');
-                        writer.write_all(head_string.as_bytes())?;
-                    }
-
-                    for (_, v) in vec {
-                        string.push_str(&v);
-                        string.push(',');
-                    }
-                    string.pop();
-                    string.push('\n');
-                    writer.write_all(string.as_bytes())?;
+            //def no copied from json
+            WriteMode::Jsonl => {
+                let mut jsonl_string = String::new();
+                for pkmn in data {
+                    let pkmap = &pkmn.get_as_map(detail_level);
+                    let pokemon_string = if pretty {
+                        serde_json::to_string_pretty(pkmap)?
+                    } else {
+                        serde_json::to_string(pkmap)?
+                    };
+                    jsonl_string += (pokemon_string + "\n").as_str();
                 }
+                // no newline at end
+                jsonl_string.pop();
+                writer.write_all(jsonl_string.as_bytes())?;
+            }
+            WriteMode::Csv => {
+                let mut csv_string = String::new();
+
+                for (column_name, _) in &data[0].get_as_vec(detail_level) {
+                    csv_string.push_str(column_name);
+                    csv_string.push(',');
+                }
+                csv_string.push('\n');
+
+                for pkmn in data {
+                    let vec = pkmn.get_as_vec(detail_level);
+
+                    for (_, column_value) in vec {
+                        csv_string.push_str(&column_value);
+                        csv_string.push(',');
+                    }
+                    csv_string.push('\n');
+                }
+                csv_string = csv_string.replace(",\n", "\n");
+                writer.write_all(csv_string.as_bytes())?;
             }
         }
 

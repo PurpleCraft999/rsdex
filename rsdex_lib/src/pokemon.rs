@@ -145,6 +145,14 @@ impl Pokemon {
         }
     }
 }
+pub fn is_pokemon_name(posible_name: &str) -> bool {
+    for name in crate::pokedex::POKEMON_NAME_ARRAY {
+        if posible_name == name {
+            return true;
+        }
+    }
+    false
+}
 
 fn capitalize_first_letter(string: &str) -> String {
     if string.len() > 1 {

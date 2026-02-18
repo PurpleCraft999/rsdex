@@ -80,6 +80,10 @@ Example
 `rsdex 1 -d `
 
 <h3>Writing to file</h3>
+
+
 when you do ` rsdex red --fp "red_pokemon.json"` it will save the reasults to the specified file path
 you can also add the --write_mode write mode to the end of it to change the write mode to another type
 it also takes into acount the level of detail set 
+the pretty flag is set the write will be pretty if available
+currently json,jsonl,and csv is supported

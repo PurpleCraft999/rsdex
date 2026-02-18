@@ -1,6 +1,9 @@
 use std::{cmp::Ordering, str::FromStr};
 
-use crate::{compute_similarity, pokemon::Null};
+use crate::{
+    compute_similarity,
+    pokemon::{Null, is_pokemon_name},
+};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 
@@ -224,13 +227,9 @@ pub enum SearchQuery {
 use crate::pokedex::{MAX_POKEDEX_NUM, POKEMON_NAME_ARRAY};
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
-        // let pokemon_names = Po;
-        for name in POKEMON_NAME_ARRAY {
-            if input == name {
-                return Ok(Self::Name { name: input.into() });
-            }
-        }
-        if let Ok(dex_num) = input.parse::<u16>() {
+        if is_pokemon_name(input) {
+            return Ok(Self::Name { name: input.into() });
+        } else if let Ok(dex_num) = input.parse::<u16>() {
             if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
                 return Ok(SearchQuery::NatDex { dex_num });
             } else {
@@ -241,11 +240,11 @@ impl SearchQuery {
         } else if let Ok(ptype) = PokemonType::from_str(input) {
             return Ok(Self::Type { ptype });
         } else if let Ok(color) = PokedexColor::from_str(input) {
-            return Ok(SearchQuery::Color { color });
+            return Ok(Self::Color { color });
         } else if let Ok(stat) = StatWithOrder::from_str(input) {
-            return Ok(SearchQuery::Stat { stat });
+            return Ok(Self::Stat { stat });
         } else if let Ok(group) = EggGroup::from_str(input) {
-            return Ok(SearchQuery::EggGroup { group });
+            return Ok(Self::EggGroup { group });
         }
         Err(Self::parsing_error(input))
     }
