@@ -10,7 +10,6 @@
 
 A  little command line tool written in rust that acts like the pokedex
 
-
 <h2>Installing</h2>
 
 <h3>Rust</h3>
