@@ -67,6 +67,10 @@ filtering by egg group is posible and for the egg groups that share a name with 
 `rsdex field` for pokemon in the field egg group
 `rsdex fairyegg` for the fairy egg group
 
+<h3>Range</h3>
+if you need the pokemon between say 50 and 100 you can do that with
+`rsdex 50..100`
+it accepts numbers  1 ≤ n ≤ max pokedex number
 
 
 <h3>Compound Searches</h3>
@@ -79,8 +83,12 @@ if you add --detailed or -d to the end of a search you'll get a more detailed su
 Example
 `rsdex 1 -d `
 
-<h3>Writing to file</h3>
 
+
+
+
+
+<h3>Writing to file</h3>
 
 when you do ` rsdex red --fp "red_pokemon.json"` it will save the reasults to the specified file path
 you can also add the --write_mode write mode to the end of it to change the write mode to another type

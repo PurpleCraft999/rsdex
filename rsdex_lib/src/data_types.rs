@@ -1,8 +1,8 @@
-use std::{cmp::Ordering, str::FromStr};
+use std::{cmp::Ordering, ops::Range, str::FromStr};
 
 use crate::{
     compute_similarity,
-    pokemon::{Null, is_pokemon_name},
+    pokemon::{Null, is_pokemon_name}, str_to_range,
 };
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
@@ -223,6 +223,7 @@ pub enum SearchQuery {
     Color { color: PokedexColor },
     Stat { stat: StatWithOrder },
     EggGroup { group: EggGroup },
+    Range(Range<u16>),
 }
 use crate::pokedex::{MAX_POKEDEX_NUM, POKEMON_NAME_ARRAY};
 impl SearchQuery {
@@ -245,7 +246,13 @@ impl SearchQuery {
             return Ok(Self::Stat { stat });
         } else if let Ok(group) = EggGroup::from_str(input) {
             return Ok(Self::EggGroup { group });
+        } else if let Ok(range)= str_to_range(input){
+            return  Ok(Self::Range(range));
         }
+
+        // Range::try_from("");
+
+
         Err(Self::parsing_error(input))
     }
     fn parsing_error(input: &str) -> String {

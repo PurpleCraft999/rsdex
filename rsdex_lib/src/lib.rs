@@ -1,4 +1,8 @@
+use std::{ ops::Range};
+
 use strsim::damerau_levenshtein;
+
+use crate::pokedex::MAX_POKEDEX_NUM;
 
 pub mod data_types;
 pub mod pokedex;
@@ -15,6 +19,24 @@ pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<Strin
         .map(|(_, s)| s)
         .collect()
 }
+
+fn str_to_range(input:&str)->Result<Range<u16>, RangeParseError>{
+    //zero is not a valid input for this case
+    if !input.contains("..") || !input.contains(['1','2','3','4','5','6','7','8','9']){
+        
+        return Err(RangeParseError);
+    }
+    let (min,max) = input.split_at(input.find("..").unwrap());
+    let min = min.parse::<u16>().unwrap();
+    let max = max[2..].parse().unwrap();
+    if min>=max || max>MAX_POKEDEX_NUM||min<1{
+        return Err(RangeParseError);
+    }
+    Ok(min-1..max+1)
+
+}
+
+struct RangeParseError;
 
 #[cfg(test)]
 mod tests {
