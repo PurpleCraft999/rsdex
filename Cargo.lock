@@ -516,16 +516,30 @@ checksum = "a96887878f22d7bad8a3b6dc5b7440e0ada9a245242924394987b21cf2210a4c"
 
 [[package]]
 name = "rsdex"
-version = "0.1.70"
+version = "0.1.80"
 dependencies = [
  "clap",
- "rsdex_lib",
+ "rsdex_lib 0.1.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "termimad",
 ]
 
 [[package]]
 name = "rsdex_lib"
-version = "0.1.70"
+version = "0.1.80"
+dependencies = [
+ "memmap2",
+ "rayon",
+ "serde",
+ "serde_json",
+ "strsim",
+ "strum",
+]
+
+[[package]]
+name = "rsdex_lib"
+version = "0.1.80"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3261da776005554c6b9249981ef3450d906b4ce0dae2b32ec170590f244866a0"
 dependencies = [
  "memmap2",
  "rayon",

@@ -21,6 +21,6 @@ lto = "thin"
 edition = "2024"
 readme = "README.md"
 repository = "https://github.com/PurpleCraft999/rsdex"
-version = "0.1.70"
+version = "0.1.80"
 authors = ["PurpleCraft999"]
 
