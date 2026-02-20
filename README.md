@@ -36,6 +36,8 @@ for quiries that only retrun one pokemon it will append the pokemon to the end
 
 `rsdex 1` which will return bulbasaur's pokedex entry or
 `rsdex bulbasaur` witch will also return bulbasaur pokedex info
+if the pokemon has a space in the name replace it with a `-` 
+
 
 <h3>Type and Color</h3>
 
@@ -78,7 +80,7 @@ if you do <code>rsdex blue fire</code> you will get cerulege because they are bo
 
 
 <h2>Flags</h2>
-if you add --detailed or -d to the end of a search you'll get a more detailed summary
+if you add --detailed or -d to the end of a search along with a number 0-5 and you'll get a more detailed summary
 Example
 <code>rsdex 1 -d 5</code>
 
