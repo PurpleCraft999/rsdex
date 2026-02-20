@@ -14,7 +14,7 @@ A  little command line tool written in rust that acts like the pokedex
 
 <h3>Rust</h3>
 if you have rust installed you can use 
-`cargo install rsdex`
+<code>cargo install rsdex</code>
 
 <h3>Windows</h3>
 go to the latest release and copy the power shell script into the command prompt and let it do its work
@@ -80,7 +80,7 @@ if you do <code>rsdex blue fire</code> you will get cerulege because they are bo
 <h2>Flags</h2>
 if you add --detailed or -d to the end of a search you'll get a more detailed summary
 Example
-`rsdex 1 -d 5`
+<code>rsdex 1 -d 5</code>
 
 
 
