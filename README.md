@@ -8,7 +8,10 @@
 
 
 
-A  little command line tool written in rust that acts like the pokedex
+A  little command line tool written in rust that acts like the pokedex 
+
+Thank you to PokeAPI for providing the data for this project
+
 
 <h2>Installing</h2>
 
