@@ -1,4 +1,4 @@
-use std::{ ops::Range};
+use std::ops::Range;
 
 use strsim::damerau_levenshtein;
 
@@ -20,30 +20,42 @@ pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<Strin
         .collect()
 }
 
-fn str_to_range(input:&str)->Result<Range<u16>, RangeParseError>{
+fn str_to_range(input: &str) -> Result<Range<u16>, UselessError> {
     //zero is not a valid input for this case
-    if !input.contains("..") || !input.contains(['1','2','3','4','5','6','7','8','9']){
-        
-        return Err(RangeParseError);
+    if !input.contains("..") || !input.contains(['1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+        return Err(UselessError);
     }
-    let (min,max) = input.split_at(input.find("..").unwrap());
+    let (min, max) = input.split_at(input.find("..").unwrap());
     let min = min.parse::<u16>().unwrap();
     let max = max[2..].parse().unwrap();
-    if min>=max || max>MAX_POKEDEX_NUM||min<1{
-        return Err(RangeParseError);
+    if min >= max || max > MAX_POKEDEX_NUM || min < 1 {
+        return Err(UselessError);
     }
-    Ok(min-1..max+1)
-
+    Ok(min - 1..max + 1)
+}
+fn str_to_pokedex_num(input: &str) -> Result<u16, String> {
+    if let Ok(dex_num) = input.parse::<u16>() {
+        if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
+            Ok(dex_num)
+        } else {
+            Err(format!(
+                "the search value must be between 1-{MAX_POKEDEX_NUM}"
+            ))
+        }
+    } else {
+        Err("could not parse u16".into())
+    }
 }
 
-struct RangeParseError;
+struct UselessError;
 
 #[cfg(test)]
 mod tests {
     // use crate::{pokedex::Pokedex, pokemon::Pokemon};
 
     use crate::{
-        pokedex::{PokeDexMmap, Pokedex},
+        data_types::{PokemonType, SearchQuery},
+        pokedex::{PokeDexMmap, Pokedex, PokedexSearchResult},
         pokemon::Pokemon,
     };
 
@@ -74,5 +86,32 @@ mod tests {
             Some(p) => find_pokemon.matches(p),
             None => panic!("it broke"),
         }
+    }
+    #[test]
+    fn multi_search_dual_type() {
+        let dex = PokeDexMmap::new().unwrap();
+        let result = dex.multi_search([
+            SearchQuery::Type(PokemonType::Bug),
+            SearchQuery::Type(PokemonType::Flying),
+        ]);
+
+        assert_eq!(
+            result,
+            PokedexSearchResult::new(vec![
+                dex.get("BUTTERFREE"),
+                dex.get("SCYTHER"),
+                dex.get("LEDYBA"),
+                dex.get("LEDIAN"),
+                dex.get("YANMA"),
+                dex.get("BEAUTIFLY"),
+                dex.get("MASQUERAIN"),
+                dex.get("NINJASK"),
+                dex.get("MOTHIM"),
+                dex.get("COMBEE"),
+                dex.get("VESPIQUEN"),
+                dex.get("YANMEGA"),
+                dex.get("VIVILLON")
+            ])
+        );
     }
 }

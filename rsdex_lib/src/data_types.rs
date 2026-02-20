@@ -1,9 +1,6 @@
 use std::{cmp::Ordering, ops::Range, str::FromStr};
 
-use crate::{
-    compute_similarity,
-    pokemon::{Null, is_pokemon_name}, str_to_range,
-};
+use crate::{compute_similarity, pokemon::Null};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 
@@ -215,43 +212,42 @@ pub enum BodyShape {
     Blob,
 }
 
+macro_rules! parse_query {
+    ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
+        $(
+            if let Ok(val) = $parser($input){
+                return Ok(SearchQuery::$query(val));
+            }
+        )*
+    };
+}
+
 #[derive(Clone, Display)]
 pub enum SearchQuery {
-    NatDex { dex_num: u16 },
-    Name { name: String },
-    Type { ptype: PokemonType },
-    Color { color: PokedexColor },
-    Stat { stat: StatWithOrder },
-    EggGroup { group: EggGroup },
+    NatDex(u16),
+    Name(String),
+    Type(PokemonType),
+    Color(PokedexColor),
+    Stat(StatWithOrder),
+    EggGroup(EggGroup),
     Range(Range<u16>),
 }
-use crate::pokedex::{MAX_POKEDEX_NUM, POKEMON_NAME_ARRAY};
+use crate::pokedex::POKEMON_NAME_ARRAY;
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
-        if is_pokemon_name(input) {
-            return Ok(Self::Name { name: input.into() });
-        } else if let Ok(dex_num) = input.parse::<u16>() {
-            if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
-                return Ok(SearchQuery::NatDex { dex_num });
-            } else {
-                return Err(format!(
-                    "the search value must be between 1-{MAX_POKEDEX_NUM}"
-                ));
-            }
-        } else if let Ok(ptype) = PokemonType::from_str(input) {
-            return Ok(Self::Type { ptype });
-        } else if let Ok(color) = PokedexColor::from_str(input) {
-            return Ok(Self::Color { color });
-        } else if let Ok(stat) = StatWithOrder::from_str(input) {
-            return Ok(Self::Stat { stat });
-        } else if let Ok(group) = EggGroup::from_str(input) {
-            return Ok(Self::EggGroup { group });
-        } else if let Ok(range)= str_to_range(input){
-            return  Ok(Self::Range(range));
-        }
-
-        // Range::try_from("");
-
+        // if is_pokemon_name(input) {
+        //     return Ok(Self::Name(input.into()));
+        // }
+        // let mut parsed: Option<SearchQuery> = None;
+        parse_query!(input,
+            crate::pokemon::is_pokemon_name_result=>Name;
+            crate::str_to_pokedex_num=>NatDex;
+            PokemonType::from_str=>Type;
+            PokedexColor::from_str=>Color;
+            StatWithOrder::from_str=>Stat;
+            EggGroup::from_str=>EggGroup;
+            crate::str_to_range=>Range;
+        );
 
         Err(Self::parsing_error(input))
     }

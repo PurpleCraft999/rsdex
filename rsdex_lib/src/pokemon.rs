@@ -3,10 +3,10 @@ use std::{collections::HashMap, fmt::Display};
 use serde::{Deserialize, Serialize};
 
 // use crate::pokedex::PokedexColor;
-use crate::data_types::{
+use crate::{UselessError, data_types::{
     BodyShape, EggGroup, PokedexColor, PokemonStat, PokemonType, StatWithOrder,
     stat_matches_ordering,
-};
+}};
 
 #[derive(Deserialize, Clone, Serialize, PartialEq, Eq, Hash, Debug)]
 pub struct Pokemon {
@@ -152,6 +152,13 @@ pub fn is_pokemon_name(posible_name: &str) -> bool {
         }
     }
     false
+}
+pub(crate) fn is_pokemon_name_result(posible_name: &str) -> Result<String, UselessError> {
+    if is_pokemon_name(posible_name) {
+        Ok(posible_name.into())
+    } else {
+        Err(UselessError)
+    }
 }
 
 fn capitalize_first_letter(string: &str) -> String {

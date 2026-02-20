@@ -7,7 +7,7 @@ fn main() {
 fn remove_useless_markdown(string: &mut String) {
     // let bytes = string.bytes();
     let headers = ["<h2>", "<h3>"];
-    remove_from_string(string, &headers);
+    replace_in_string(string, &headers, "");
     // let closing_headers= ["</h2>"];
     let closing_headers = headers
         .iter()
@@ -23,10 +23,10 @@ fn remove_useless_markdown(string: &mut String) {
         .collect::<Vec<&str>>();
     // println!("cargo::warning={closing_headers:?}");
 
-    remove_from_string(string, &closing_headers);
+    replace_in_string(string, &closing_headers, "");
 
     // the  stuff at top
-    remove_from_string(
+    replace_in_string(
         string,
         &[
             "# rsdex &emsp; [![Latest Version]][crates.io]  [![Latest Release Banner]][Latest Release]",
@@ -35,12 +35,14 @@ fn remove_useless_markdown(string: &mut String) {
             "[Latest Release]:https://github.com/PurpleCraft999/rsdex/releases/latest/",
             "[crates.io]: https://crates.io/crates/rsdex",
         ],
+        "",
     );
+    replace_in_string(string, &["<code>", "</code>"], "`");
 }
 
-fn remove_from_string(string: &mut String, to_remove: &[&str]) {
+fn replace_in_string(string: &mut String, to_remove: &[&str], replace_with: &str) {
     for remove in to_remove {
-        *string = string.replace(*remove, "");
+        *string = string.replace(*remove, replace_with);
     }
 }
 

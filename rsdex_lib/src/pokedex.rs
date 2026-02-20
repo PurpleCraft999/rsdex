@@ -8,16 +8,22 @@ use strum::{Display, EnumString};
 // use serde::Deserialize;
 use std::{
     // fs::File,
-    collections::HashSet, ffi::OsStr, fs::File, io::{self, BufRead, BufWriter, Write}, ops::Range, path::PathBuf, str::FromStr
+    collections::HashSet,
+    ffi::OsStr,
+    fs::File,
+    io::{self, BufRead, BufWriter, Write},
+    ops::Range,
+    path::PathBuf,
+    str::FromStr,
 };
 
 pub type SingleSearchReturn = Option<Pokemon>;
 pub type MultiSearchReturn = Vec<Pokemon>;
-#[derive(Debug)]
-pub struct PokedexSearchResualt {
+#[derive(Debug, PartialEq)]
+pub struct PokedexSearchResult {
     vec: Vec<Pokemon>,
 }
-impl PokedexSearchResualt {
+impl PokedexSearchResult {
     pub fn new(mut vec: Vec<Pokemon>) -> Self {
         vec.sort_by(|o, t| {
             if o.get_dex_number() > t.get_dex_number() {
@@ -28,7 +34,7 @@ impl PokedexSearchResualt {
         });
         Self { vec }
     }
-    pub fn merge(&mut self, other: &mut PokedexSearchResualt) {
+    pub fn merge(&mut self, other: &mut PokedexSearchResult) {
         self.vec.append(&mut other.vec);
     }
     ///returns the dupes
@@ -41,15 +47,11 @@ impl PokedexSearchResualt {
             }
         }
         // println!("{:?}",return_vec);
-        if return_vec.is_empty(){
+        if return_vec.is_empty() {
             self.vec.clone()
-        } else{
+        } else {
             return_vec
         }
-
-
-
-        
     }
 
     pub fn print_data(&self, detail_level: u8) {
@@ -105,7 +107,7 @@ impl PokedexSearchResualt {
             .write(&mut writer, &self.vec, detail_level, pretty)
     }
 }
-impl From<SingleSearchReturn> for PokedexSearchResualt {
+impl From<SingleSearchReturn> for PokedexSearchResult {
     fn from(value: SingleSearchReturn) -> Self {
         match value {
             Some(v) => Self::new(vec![v]),
@@ -113,12 +115,12 @@ impl From<SingleSearchReturn> for PokedexSearchResualt {
         }
     }
 }
-impl From<MultiSearchReturn> for PokedexSearchResualt {
+impl From<MultiSearchReturn> for PokedexSearchResult {
     fn from(vec: MultiSearchReturn) -> Self {
         Self::new(vec)
     }
 }
-impl Default for PokedexSearchResualt {
+impl Default for PokedexSearchResult {
     fn default() -> Self {
         Self::new(Vec::new())
     }
@@ -239,6 +241,10 @@ impl PokeDexMmap {
             .par_bridge()
             .map(|line| serde_json::from_str::<Pokemon>(&line).unwrap())
     }
+    #[allow(dead_code)]
+    pub(crate) fn get(&self, name: &str) -> Pokemon {
+        self.find_by_name(name).unwrap()
+    }
 }
 
 impl Pokedex for PokeDexMmap {
@@ -276,6 +282,7 @@ pub trait Pokedex {
         self.find_single_pokemon(|pokemon| pokemon.get_dex_number() == dex_num)
     }
     fn find_by_name(&self, name: &str) -> SingleSearchReturn {
+        let name: &str = &name.to_lowercase();
         self.find_single_pokemon(|pkmn| pkmn.get_name() == name)
     }
     fn find_by_color(&self, color: &PokedexColor) -> MultiSearchReturn {
@@ -289,24 +296,24 @@ pub trait Pokedex {
             pokemon.get_egg_group_1() == group || pokemon.get_egg_group_2() == group
         })
     }
-    fn find_within_range_nat_dex(&self,range:&Range<u16>)->MultiSearchReturn{
-        self.find_many_pokemon(|pokemon| {   range.contains(pokemon.get_dex_number())   }  )
+    fn find_within_range_nat_dex(&self, range: &Range<u16>) -> MultiSearchReturn {
+        self.find_many_pokemon(|pokemon| range.contains(pokemon.get_dex_number()))
     }
-    fn search(&self, value: &SearchQuery) -> PokedexSearchResualt {
+    fn search(&self, value: &SearchQuery) -> PokedexSearchResult {
         match value {
-            SearchQuery::NatDex { dex_num } => self.find_by_natinal_dex_number(dex_num).into(),
-            SearchQuery::Name { name } => self.find_by_name(name).into(),
-            SearchQuery::Type { ptype } => self.find_by_pokemon_type(ptype).into(),
-            SearchQuery::Color { color } => self.find_by_color(color).into(),
-            SearchQuery::Stat { stat } => self.find_by_stat(stat).into(),
-            SearchQuery::EggGroup { group } => self.find_by_egg_group(group).into(),
-            SearchQuery::Range(range)=>self.find_within_range_nat_dex(range).into()
+            SearchQuery::NatDex(dex_num) => self.find_by_natinal_dex_number(dex_num).into(),
+            SearchQuery::Name(name) => self.find_by_name(name).into(),
+            SearchQuery::Type(ptype) => self.find_by_pokemon_type(ptype).into(),
+            SearchQuery::Color(color) => self.find_by_color(color).into(),
+            SearchQuery::Stat(stat) => self.find_by_stat(stat).into(),
+            SearchQuery::EggGroup(group) => self.find_by_egg_group(group).into(),
+            SearchQuery::Range(range) => self.find_within_range_nat_dex(range).into(),
         }
     }
-    fn multi_search(&self, values: impl IntoIterator<Item = SearchQuery>) -> PokedexSearchResualt {
+    fn multi_search(&self, values: impl IntoIterator<Item = SearchQuery>) -> PokedexSearchResult {
         let mut singles = Vec::new();
 
-        let mut many = PokedexSearchResualt::default();
+        let mut many = PokedexSearchResult::default();
         for value in values {
             // print!("1");
             if value.finds_single() {
@@ -318,7 +325,7 @@ pub trait Pokedex {
                 many.merge(&mut self.search(&value));
             }
         }
-        many = PokedexSearchResualt::new(many.filter_for_search());
+        many = PokedexSearchResult::new(many.filter_for_search());
         many.vec.append(&mut singles);
         many
     }

@@ -69,19 +69,18 @@ filtering by egg group is posible and for the egg groups that share a name with 
 
 <h3>Range</h3>
 if you need the pokemon between say 50 and 100 you can do that with
-`rsdex 50..100`
+<code>rsdex 50..100</code>
 it accepts numbers  1 ≤ n ≤ max pokedex number
 
 
 <h3>Compound Searches</h3>
-if you do `rsdex blue fire` you will get cerulege because they are the only pokemon to both be blue and fire type 
-you cannot do `rsdex 1 2` because that will always resault in faliure same with pokemon names
+if you do <code>rsdex blue fire</code> you will get cerulege because they are both blue and fire type 
 
 
 <h2>Flags</h2>
 if you add --detailed or -d to the end of a search you'll get a more detailed summary
 Example
-`rsdex 1 -d `
+`rsdex 1 -d 5`
 
 
 
