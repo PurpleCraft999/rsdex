@@ -1,14 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["rsdex_main","rsdex_lib"]
-default-members = ["rsdex_main","rsdex_lib"]
-
-
-
+members = ["rsdex_main", "rsdex_lib"]
+default-members = ["rsdex_main", "rsdex_lib"]
 
 
 [workspace.dependencies]
-serde = {version = "1.0.228",features = ["derive"]}
+serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 
 # The profile that 'dist' will build with
@@ -24,3 +21,10 @@ repository = "https://github.com/PurpleCraft999/rsdex"
 version = "0.1.80"
 authors = ["PurpleCraft999"]
 
+
+
+#cargo flamegraph --profile flamegraph -- rsdex_args
+[profile.flamegraph]
+inherits = "release"
+debug = true
+strip = false

@@ -3,7 +3,7 @@ use crate::{
     pokemon::Pokemon,
 };
 use memmap2::Mmap;
-use rayon::iter::{ParallelBridge, ParallelIterator};
+// use rayon::iter::{ParallelBridge, ParallelIterator};
 use strum::{Display, EnumString};
 // use serde::Deserialize;
 use std::{
@@ -64,7 +64,7 @@ impl PokedexSearchResult {
             pokemon.print(detail_level);
         }
     }
-    fn get_if_single(&self) -> Option<&Pokemon> {
+    pub fn get_if_single(&self) -> Option<&Pokemon> {
         if self.vec.len() == 1 {
             Some(&self.vec[0])
         } else {
@@ -224,21 +224,22 @@ impl PokeDexMmap {
         Ok(Self { mmap })
     }
     #[allow(clippy::type_complexity)]
-    fn mmap_to_pokemap(
-        &self,
-    ) -> rayon::iter::Map<
-        rayon::iter::IterBridge<
-            std::iter::MapWhile<
-                std::io::Lines<&[u8]>,
-                impl FnMut(Result<String, std::io::Error>) -> Option<String>,
-            >,
-        >,
-        impl Fn(String) -> Pokemon,
-    > {
+    fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon>
+// -> std::iter::Map<std::iter::MapWhile<std::io::Lines<&[u8]>>>
+    // -> rayon::iter::Map<
+    //     rayon::iter::IterBridge<
+    //         std::iter::MapWhile<
+    //             std::io::Lines<&[u8]>,
+    //             impl FnMut(Result<String, std::io::Error>) -> Option<String>,
+    //         >,
+    //     >,
+    //     impl Fn(String) -> Pokemon,
+    // >
+    {
         self.mmap
             .lines()
             .map_while(|item| item.ok())
-            .par_bridge()
+            // .par_bridge()
             .map(|line| serde_json::from_str::<Pokemon>(&line).unwrap())
     }
     #[allow(dead_code)]
@@ -252,7 +253,7 @@ impl Pokedex for PokeDexMmap {
         &self,
         find: P,
     ) -> SingleSearchReturn {
-        self.mmap_to_pokemap().find_first(find)
+        self.mmap_to_pokemap().find(find)
     }
     fn find_many_pokemon<P: Fn(&Pokemon) -> bool + Sync + Send>(
         &self,
@@ -299,7 +300,7 @@ pub trait Pokedex {
     fn find_within_range_nat_dex(&self, range: &Range<u16>) -> MultiSearchReturn {
         self.find_many_pokemon(|pokemon| range.contains(pokemon.get_dex_number()))
     }
-    fn search(&self, value: &SearchQuery) -> PokedexSearchResult {
+    fn search_single(&self, value: &SearchQuery) -> PokedexSearchResult {
         match value {
             SearchQuery::NatDex(dex_num) => self.find_by_natinal_dex_number(dex_num).into(),
             SearchQuery::Name(name) => self.find_by_name(name).into(),
@@ -310,19 +311,20 @@ pub trait Pokedex {
             SearchQuery::Range(range) => self.find_within_range_nat_dex(range).into(),
         }
     }
-    fn multi_search(&self, values: impl IntoIterator<Item = SearchQuery>) -> PokedexSearchResult {
-        let mut singles = Vec::new();
 
+    // fn search()
+
+    ///make this better
+    fn search_many(&self, queries: impl IntoIterator<Item = SearchQuery>) -> PokedexSearchResult {
+        let mut singles = Vec::new();
         let mut many = PokedexSearchResult::default();
-        for value in values {
-            // print!("1");
-            if value.finds_single() {
-                match self.search(&value).get_if_single() {
-                    Some(value) => singles.push(value.clone()),
-                    None => eprintln!("this should never fail  (search many)"),
+        for query in queries {
+            if query.finds_single() {
+                if let Some(pokemon) = self.search_single(&query).get_if_single() {
+                    singles.push(pokemon.clone())
                 }
             } else {
-                many.merge(&mut self.search(&value));
+                many.merge(&mut self.search_single(&query));
             }
         }
         many = PokedexSearchResult::new(many.filter_for_search());

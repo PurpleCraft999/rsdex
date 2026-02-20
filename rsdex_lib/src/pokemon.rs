@@ -3,10 +3,13 @@ use std::{collections::HashMap, fmt::Display};
 use serde::{Deserialize, Serialize};
 
 // use crate::pokedex::PokedexColor;
-use crate::{UselessError, data_types::{
-    BodyShape, EggGroup, PokedexColor, PokemonStat, PokemonType, StatWithOrder,
-    stat_matches_ordering,
-}};
+use crate::{
+    UselessError,
+    data_types::{
+        BodyShape, EggGroup, PokedexColor, PokemonStat, PokemonType, StatWithOrder,
+        stat_matches_ordering,
+    },
+};
 
 #[derive(Deserialize, Clone, Serialize, PartialEq, Eq, Hash, Debug)]
 pub struct Pokemon {

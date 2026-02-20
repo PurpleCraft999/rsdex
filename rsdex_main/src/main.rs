@@ -9,7 +9,7 @@ use rsdex_lib::{
 include!(concat!(env!("OUT_DIR"), "/readme.rs"));
 
 fn main() {
-    let args = Args::parse();
+    let args = RsdexArgs::parse();
     let detail_level = args.detailed;
     let pokedex = match PokeDexMmap::new() {
         Ok(dex) => dex,
@@ -21,13 +21,20 @@ fn main() {
 
         return;
     }
+    let search_queries = args.search_queries;
 
-    if args.search_queries.is_empty() {
+    if search_queries.is_empty() {
         println!("please add an argument or use --help for help");
         return;
     }
 
-    let pokemon = pokedex.multi_search(args.search_queries);
+    let pokemon = if search_queries.len() == 1 {
+        pokedex.search_single(&search_queries[0])
+    } else {
+        pokedex.search_many(search_queries)
+    };
+
+    // let pokemon = pokedex.search_many(args.search_queries);
 
     if let Some(fp) = args.file_path {
         pokemon
@@ -41,8 +48,7 @@ fn main() {
 
 #[derive(clap::Parser)]
 #[command(version, disable_help_flag = true)]
-struct Args {
-
+struct RsdexArgs {
     #[arg(value_parser = SearchQuery::parser)]
     search_queries: Vec<SearchQuery>,
 
@@ -54,7 +60,6 @@ struct Args {
     write_mode: Option<WriteMode>,
     #[arg(long, requires = "file_path")]
     pretty: bool,
-
     #[arg(long)]
     help: bool,
 }

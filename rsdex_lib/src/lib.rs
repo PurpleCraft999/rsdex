@@ -64,7 +64,7 @@ mod tests {
         name: &'a str,
     }
     impl PokemonD0<'_> {
-        fn matches(&self, find: Pokemon) {
+        fn matches(&self, find: &Pokemon) {
             assert_eq!(&self.name, find.get_name());
             assert_eq!(&self.nat_dex_num, find.get_dex_number());
         }
@@ -78,19 +78,21 @@ mod tests {
         };
         let dex = PokeDexMmap::new().unwrap();
 
-        match dex.find_by_natinal_dex_number(&1) {
-            Some(p) => find_pokemon.matches(p),
-            None => panic!("pokedex somehow broke"),
-        }
-        match dex.find_by_name(find_pokemon.name) {
-            Some(p) => find_pokemon.matches(p),
-            None => panic!("it broke"),
-        }
+        find_pokemon.matches(
+            dex.search_many([SearchQuery::NatDex(1)])
+                .get_if_single()
+                .unwrap(),
+        );
+        find_pokemon.matches(
+            dex.search_many([SearchQuery::Name("bulbasaur".into())])
+                .get_if_single()
+                .unwrap(),
+        );
     }
     #[test]
     fn multi_search_dual_type() {
         let dex = PokeDexMmap::new().unwrap();
-        let result = dex.multi_search([
+        let result = dex.search_many([
             SearchQuery::Type(PokemonType::Bug),
             SearchQuery::Type(PokemonType::Flying),
         ]);
@@ -113,5 +115,11 @@ mod tests {
                 dex.get("VIVILLON")
             ])
         );
+    }
+    #[test]
+    fn test_multi_search_one() {
+        let dex = PokeDexMmap::new().unwrap();
+        let result = dex.search_many([SearchQuery::NatDex(1)]);
+        assert_eq!(result, PokedexSearchResult::new(vec![dex.get("bulbasaur")]))
     }
 }
