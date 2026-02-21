@@ -73,7 +73,7 @@ pub enum PokedexColor {
     Pink,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct StatWithOrder {
     pub stat: PokemonStat,
     pub operation: Ordering,
@@ -102,7 +102,7 @@ pub fn stat_matches_ordering(order: Ordering, stat1: u8, stat2: u8) -> bool {
         Ordering::Less => stat1.cmp(&stat2).is_le(),
     }
 }
-#[derive(Clone, Display)]
+#[derive(Clone, Display,Debug)]
 pub enum PokemonStat {
     Hp(u8),
     Attack(u8),
@@ -219,38 +219,42 @@ macro_rules! parse_if_ok {
         )*
     };
 }
-#[derive(Display,Clone)]
+#[derive(Display, Clone,Debug)]
 #[strum(serialize_all = "lowercase")]
-pub enum KeyWord{
-    And(SearchQuery,SearchQuery),
-    Just(SearchQuery),
-    Not //just for future use
+pub enum KeyWord {
+    And(Box<KeyWord>, Box<KeyWord>),
+    Literal(SearchQuery),
+    Not, //just for future use
 }
-impl KeyWord{
-    pub fn parser(inputs:Vec<String>)->Vec<KeyWord>{
-        let mut keywords = Vec::new();
-        let mut skip=false;
-        for (i,input) in inputs.iter().enumerate(){
-
-            let previous = inputs.get(i-1);
-
-
-            if skip{
-                skip=false;
+impl KeyWord {
+    pub fn parser(inputs: Vec<String>) -> Vec<KeyWord> {
+        let mut keywords: Vec<KeyWord> = Vec::new();
+        let mut skip = false;
+        // let mut remove = Vec::new();
+        for (i, input) in inputs.iter().enumerate() {
+            let previous = keywords.get(i.wrapping_sub(1)).cloned();
+            let next = inputs.get(i+1).cloned();
+            if skip {
+                skip = false;
                 continue;
             }
             if Self::is_keyword_and(&input){
+                // let previous = previous.unwrap();
                 keywords.pop();
-                keywords.push(KeyWord::And(SearchQuery::parser(&previous.unwrap()).unwrap(), SearchQuery::parser(&inputs[i+1]).unwrap()));
 
-                skip=true;
+                // println!("{previous:?}");
+                keywords.push(KeyWord::And(
+                    Box::new(previous.unwrap()),
+                    Box::new(KeyWord::Literal(SearchQuery::parser(&next.unwrap()).unwrap())),
+                ));
+
+                skip = true;
                 continue;
             }
 
-            keywords.push(KeyWord::Just(SearchQuery::parser(&input).unwrap()));
-
+            keywords.push(KeyWord::Literal(SearchQuery::parser(&input).unwrap()));
         }
-
+        
 
         keywords
         // for (i,input) in inputs.iter().enumerate(){
@@ -258,28 +262,45 @@ impl KeyWord{
         //         keywords.push(KeyWord::And(inputs[i-1], inputs[i+1]));
         //     }
 
-
-
         // }
     }
-    pub fn get_just(&self)->Option<SearchQuery>{
-        match self{
-            Self::Just( q)=>Some(q.clone()),
-            _=>None
+    pub fn get_just(&self) -> Option<SearchQuery> {
+        match self {
+            Self::Literal(q) => Some(q.clone()),
+            _ => None,
         }
     }
-    fn is_keyword_and(input:&str)->bool{
+    fn is_keyword_and(input: &str) -> bool {
         //&& is aleady in use and & is reserved
-        return input=="and";
+        return input == "and"||input=="And";
     }
+
+    pub fn is_and(&self)->Vec<SearchQuery>{
+        let mut chain = Vec::new();
+        match self{
+            Self::And(one,two )=>{
+                match one.get_just(){
+                    Some(some)=>chain.push(some),
+                    None=>chain.append(&mut Self::is_and(one))
+                }
+                match two.get_just(){
+                    Some(some)=>chain.push(some),
+                    None=>chain.append(&mut Self::is_and(one))
+                }
+            },
+            _=>()
+        }
+
+
+        chain
+
+    }
+
 
 
 }
 
-
-
-
-#[derive(Clone, Display)]
+#[derive(Clone, Display,Debug)]
 pub enum SearchQuery {
     NatDex(u16),
     Name(String),
@@ -337,6 +358,6 @@ impl SearchQuery {
 }
 impl From<SearchQuery> for KeyWord {
     fn from(value: SearchQuery) -> Self {
-        KeyWord::Just(value)
+        KeyWord::Literal(value)
     }
 }

@@ -1,7 +1,5 @@
 use crate::{
-    data_types::{
-        EggGroup, KeyWord, PokedexColor, PokemonType, SearchQuery, StatWithOrder,
-    },
+    data_types::{EggGroup, KeyWord, PokedexColor, PokemonType, SearchQuery, StatWithOrder},
     pokemon::Pokemon,
 };
 use memmap2::Mmap;
@@ -332,16 +330,19 @@ pub trait Pokedex {
         let mut results = PokedexSearchResult::default();
         for keyword in queries {
             match keyword {
-                KeyWord::And(one,two )=>{
-                    let mut search = self.search(&one);
-                    search.merge(&mut self.search(&two));
+                KeyWord::And(..) => {
+                    let thing = keyword.is_and();
+                    for item in thing{
+                        let mut search = self.search(&item);
+                    // search.merge(&mut self.search(&));
 
-                    results.merge(&mut PokedexSearchResult::new(search.remove_dupelicates()));
+                    results.merge(&mut search);
+                    }
+                    results = PokedexSearchResult::new(results.remove_dupelicates());
 
-
-                },
-                KeyWord::Just(query)=>results.merge(&mut self.search(&query)),
-                KeyWord::Not=>unreachable!()
+                }
+                KeyWord::Literal(query) => results.merge(&mut self.search(&query)),
+                KeyWord::Not => unreachable!(),
             }
             // match token{
             //     SearchToken::Query(query)=>results.merge(&mut self.search_single(&query)),
