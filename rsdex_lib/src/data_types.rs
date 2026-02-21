@@ -210,8 +210,7 @@ pub enum BodyShape {
     Ball,
     Blob,
 }
-
-macro_rules! parse_query {
+macro_rules! parse_if_ok {
     ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
         $(
             if let Ok(val) = $parser($input){
@@ -220,6 +219,65 @@ macro_rules! parse_query {
         )*
     };
 }
+#[derive(Display,Clone)]
+#[strum(serialize_all = "lowercase")]
+pub enum KeyWord{
+    And(SearchQuery,SearchQuery),
+    Just(SearchQuery),
+    Not //just for future use
+}
+impl KeyWord{
+    pub fn parser(inputs:Vec<String>)->Vec<KeyWord>{
+        let mut keywords = Vec::new();
+        let mut skip=false;
+        for (i,input) in inputs.iter().enumerate(){
+
+            let previous = inputs.get(i-1);
+
+
+            if skip{
+                skip=false;
+                continue;
+            }
+            if Self::is_keyword_and(&input){
+                keywords.pop();
+                keywords.push(KeyWord::And(SearchQuery::parser(&previous.unwrap()).unwrap(), SearchQuery::parser(&inputs[i+1]).unwrap()));
+
+                skip=true;
+                continue;
+            }
+
+            keywords.push(KeyWord::Just(SearchQuery::parser(&input).unwrap()));
+
+        }
+
+
+        keywords
+        // for (i,input) in inputs.iter().enumerate(){
+        //     if input=="and"{
+        //         keywords.push(KeyWord::And(inputs[i-1], inputs[i+1]));
+        //     }
+
+
+
+        // }
+    }
+    pub fn get_just(&self)->Option<SearchQuery>{
+        match self{
+            Self::Just( q)=>Some(q.clone()),
+            _=>None
+        }
+    }
+    fn is_keyword_and(input:&str)->bool{
+        //&& is aleady in use and & is reserved
+        return input=="and";
+    }
+
+
+}
+
+
+
 
 #[derive(Clone, Display)]
 pub enum SearchQuery {
@@ -238,7 +296,7 @@ impl SearchQuery {
         //     return Ok(Self::Name(input.into()));
         // }
         // let mut parsed: Option<SearchQuery> = None;
-        parse_query!(input,
+        parse_if_ok!(input,
             crate::pokemon::is_pokemon_name_result=>Name;
             crate::str_to_pokedex_num=>NatDex;
             PokemonType::from_str=>Type;
@@ -271,6 +329,14 @@ impl SearchQuery {
         }
     }
     pub fn finds_single(&self) -> bool {
-        matches!(self, SearchQuery::Name { .. } | SearchQuery::NatDex { .. })
+        matches!(self, SearchQuery::Name(..) | SearchQuery::NatDex(..))
+    }
+    // pub fn can_be_applied_once(&self)->bool{
+    //     matches!(self,Self::Color(..))
+    // }
+}
+impl From<SearchQuery> for KeyWord {
+    fn from(value: SearchQuery) -> Self {
+        KeyWord::Just(value)
     }
 }

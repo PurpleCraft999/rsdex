@@ -1,5 +1,7 @@
 use crate::{
-    data_types::{EggGroup, PokedexColor, PokemonType, SearchQuery, StatWithOrder},
+    data_types::{
+        EggGroup, KeyWord, PokedexColor, PokemonType, SearchQuery, StatWithOrder,
+    },
     pokemon::Pokemon,
 };
 use memmap2::Mmap;
@@ -38,7 +40,7 @@ impl PokedexSearchResult {
         self.vec.append(&mut other.vec);
     }
     ///returns the dupes
-    pub fn filter_for_search(&mut self) -> Vec<Pokemon> {
+    pub fn remove_dupelicates(&mut self) -> Vec<Pokemon> {
         let mut set = HashSet::new();
         let mut return_vec = Vec::new();
         for pkmn in &self.vec {
@@ -47,11 +49,12 @@ impl PokedexSearchResult {
             }
         }
         // println!("{:?}",return_vec);
-        if return_vec.is_empty() {
-            self.vec.clone()
-        } else {
-            return_vec
-        }
+        // if return_vec.is_empty() {
+        //     self.vec.clone()
+        // } else {
+        //     return_vec
+        // }
+        return_vec
     }
 
     pub fn print_data(&self, detail_level: u8) {
@@ -224,25 +227,13 @@ impl PokeDexMmap {
         Ok(Self { mmap })
     }
     #[allow(clippy::type_complexity)]
-    fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon>
-// -> std::iter::Map<std::iter::MapWhile<std::io::Lines<&[u8]>>>
-    // -> rayon::iter::Map<
-    //     rayon::iter::IterBridge<
-    //         std::iter::MapWhile<
-    //             std::io::Lines<&[u8]>,
-    //             impl FnMut(Result<String, std::io::Error>) -> Option<String>,
-    //         >,
-    //     >,
-    //     impl Fn(String) -> Pokemon,
-    // >
-    {
+    fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon> {
         self.mmap
             .lines()
             .map_while(|item| item.ok())
             // .par_bridge()
             .map(|line| serde_json::from_str::<Pokemon>(&line).unwrap())
     }
-
 }
 
 impl Pokedex for PokeDexMmap {
@@ -297,7 +288,7 @@ pub trait Pokedex {
     fn find_within_range_nat_dex(&self, range: &Range<u16>) -> MultiSearchReturn {
         self.find_many_pokemon(|pokemon| range.contains(pokemon.get_dex_number()))
     }
-    fn search_single(&self, value: &SearchQuery) -> PokedexSearchResult {
+    fn search(&self, value: &SearchQuery) -> PokedexSearchResult {
         match value {
             SearchQuery::NatDex(dex_num) => self.find_by_natinal_dex_number(dex_num).into(),
             SearchQuery::Name(name) => self.find_by_name(name).into(),
@@ -312,20 +303,54 @@ pub trait Pokedex {
     // fn search()
 
     ///make this better
-    fn search_many(&self, queries: impl IntoIterator<Item = SearchQuery>) -> PokedexSearchResult {
-        let mut singles = Vec::new();
-        let mut many = PokedexSearchResult::default();
-        for query in queries {
-            if query.finds_single() {
-                if let Some(pokemon) = self.search_single(&query).get_if_single() {
-                    singles.push(pokemon.clone())
-                }
-            } else {
-                many.merge(&mut self.search_single(&query));
+    fn search_many(&self, queries: impl IntoIterator<Item = KeyWord>) -> PokedexSearchResult {
+        // let mut single = Vec::new();
+        // let mut set = HashSet::new();
+        // for query in queries{
+
+        //     match query{
+        //         search if search.finds_single()=>single.push(search),
+        //         once if once.can_be_applied_once() => {single.push(once);},
+        //         checkmate=>()
+        //     }
+        // }
+
+        // let mut singles = Vec::new();
+        // let mut many = PokedexSearchResult::default();
+        // for query in queries {
+        //     if query.finds_single() {
+        //         if let Some(pokemon) = self.search_single(&query).get_if_single() {
+        //             singles.push(pokemon.clone())
+        //         }
+        //     } else {
+        //         many.merge(&mut self.search_single(&query));
+        //     }
+        // }
+        // many = PokedexSearchResult::new(many.filter_for_search());
+        // many.vec.append(&mut singles);
+        // many
+        let mut results = PokedexSearchResult::default();
+        for keyword in queries {
+            match keyword {
+                KeyWord::And(one,two )=>{
+                    let mut search = self.search(&one);
+                    search.merge(&mut self.search(&two));
+
+                    results.merge(&mut PokedexSearchResult::new(search.remove_dupelicates()));
+
+
+                },
+                KeyWord::Just(query)=>results.merge(&mut self.search(&query)),
+                KeyWord::Not=>unreachable!()
             }
+            // match token{
+            //     SearchToken::Query(query)=>results.merge(&mut self.search_single(&query)),
+            //     SearchToken::KeyWord(keyword)=>()
+            // }
+            // results.merge(&mut self.search_single(&query))
         }
-        many = PokedexSearchResult::new(many.filter_for_search());
-        many.vec.append(&mut singles);
-        many
+
+        results
+        // PokedexSearchResult::default()
     }
 }
