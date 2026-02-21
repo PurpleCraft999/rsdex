@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, value_parser};
 use rsdex_lib::{
-    data_types::{KeyWord},
+    data_types::KeyWord,
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
 };
 
@@ -21,13 +21,12 @@ fn main() {
 
         return;
     }
-    let search_queries = KeyWord::parser(args.search_queries);
-
-
-    if search_queries.is_empty() {
-        println!("please add an argument or use --help for help");
-        return;
-    }
+    let search_queries = KeyWord::parse(&mut args.search_queries.into_iter()).expect("paring failed");
+    
+    // if search_queries.is_empty() {
+    //     println!("please add an argument or use --help for help");
+    //     return;
+    // }
 
     let pokemon = pokedex.search_many(search_queries);
     // if search_queries.len() == 1 {

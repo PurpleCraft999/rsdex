@@ -2,7 +2,7 @@ use std::{cmp::Ordering, ops::Range, str::FromStr};
 
 use crate::{compute_similarity, pokemon::Null};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString, VariantArray};
+use strum::{Display,EnumString, VariantArray};
 
 #[derive(
     Deserialize,
@@ -73,7 +73,7 @@ pub enum PokedexColor {
     Pink,
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct StatWithOrder {
     pub stat: PokemonStat,
     pub operation: Ordering,
@@ -102,7 +102,7 @@ pub fn stat_matches_ordering(order: Ordering, stat1: u8, stat2: u8) -> bool {
         Ordering::Less => stat1.cmp(&stat2).is_le(),
     }
 }
-#[derive(Clone, Display,Debug)]
+#[derive(Clone, Display, Debug)]
 pub enum PokemonStat {
     Hp(u8),
     Attack(u8),
@@ -219,88 +219,152 @@ macro_rules! parse_if_ok {
         )*
     };
 }
-#[derive(Display, Clone,Debug)]
+#[derive(Display, Clone, Debug)]
 #[strum(serialize_all = "lowercase")]
+// #[strum_discriminants(name(KeyWordToken),derive(EnumIs))]
 pub enum KeyWord {
     And(Box<KeyWord>, Box<KeyWord>),
     Literal(SearchQuery),
-    Not, //just for future use
+    Or(Box<KeyWord>, Box<KeyWord>),
 }
 impl KeyWord {
-    pub fn parser(inputs: Vec<String>) -> Vec<KeyWord> {
-        let mut keywords: Vec<KeyWord> = Vec::new();
-        let mut skip = false;
-        // let mut remove = Vec::new();
-        for (i, input) in inputs.iter().enumerate() {
-            let previous = keywords.get(i.wrapping_sub(1)).cloned();
-            let next = inputs.get(i+1).cloned();
-            if skip {
-                skip = false;
-                continue;
-            }
-            if Self::is_keyword_and(&input){
-                // let previous = previous.unwrap();
-                keywords.pop();
+    pub fn parse(tokens:&mut impl Iterator<Item = String>) -> Result<KeyWord,String> {
+        // let mut tokens: std::vec::IntoIter<KeyWordToken> = parse_tokens(&raw).into_iter();
+        // let mut keywords = Vec::new();
 
-                // println!("{previous:?}");
-                keywords.push(KeyWord::And(
-                    Box::new(previous.unwrap()),
-                    Box::new(KeyWord::Literal(SearchQuery::parser(&next.unwrap()).unwrap())),
-                ));
+        let mut current_keyword=KeyWord::literal(&tokens.next().unwrap())?;
 
-                skip = true;
-                continue;
+
+        while let Some(current_token) = tokens.next(){
+            // let next_value = tokens.peek();
+            if current_token=="and"{
+
+                // let right_value = Self::parse(tokens)?;
+                
+                current_keyword = Self::and(current_keyword, Self::parse(tokens)?)?;
+                // keywords.push(Self::and(raw[curent_token_position], right));
             }
 
-            keywords.push(KeyWord::Literal(SearchQuery::parser(&input).unwrap()));
+
+
+
+
         }
-        
+        Ok(current_keyword)
 
-        keywords
-        // for (i,input) in inputs.iter().enumerate(){
-        //     if input=="and"{
-        //         keywords.push(KeyWord::And(inputs[i-1], inputs[i+1]));
+        // Vec::new()
+        // let mut skip = false;
+        // let mut processed_keywords = Vec::new();
+
+        // for (mut i, token) in tokens.iter().enumerate() {
+        //     // println!("i:{i}");
+        //     // println!("token:{token:?}");
+        //     // println!("value:{}",raw[i]);
+
+        //     if skip {
+        //         skip = false;
+        //         continue;
         //     }
+        //     // if i>0 && let Some(previous)= tokens.get(i-1){
+        //     //     println!("{previous:?}");
+        //     //     if previous==&KeyWordToken::And{
+        //     //         continue;
+        //     //     }
+        //     // }
 
+        //     // if token==&KeyWordToken::And{
+        //     //     println!("THIS IS AND");
+        //     // }
+
+        //     // if let Some(next) = tokens.get(i + 1) {
+        //     //     //dont proccess this token if it will be apart of the next
+        //     //     if token_needs_previous(*next) {
+        //     //         continue;
+        //     //     }
+        //     // }
+        //     match token {
+        //         KeyWordToken::And => {
+        //             let keyword = KeyWord::and(&processed_keywords[i - 1], &raw[i + 1])
+        //                 .expect("must be a search query before and after `and`");
+        //             processed_keywords.remove(i - 1);
+        //             raw.remove(i + 1);
+        //             i-=1;
+        //             // tokens.remove(i+1);
+        //             processed_keywords.push(keyword);
+        //             skip = true;
+        //         }
+
+        //         KeyWordToken::Literal => {
+        //             processed_keywords
+        //                 .push(KeyWord::literal(&raw[i]).expect("could not parse search query"));
+        //         }
+
+        //         // KeyWordToken::Or => (),
+        //     }
         // }
+        // // println!("{:?}",processed_keywords);
+        // processed_keywords
     }
+
+
+    
+
     pub fn get_just(&self) -> Option<SearchQuery> {
         match self {
             Self::Literal(q) => Some(q.clone()),
             _ => None,
         }
     }
-    fn is_keyword_and(input: &str) -> bool {
-        //&& is aleady in use and & is reserved
-        return input == "and"||input=="And";
-    }
 
-    pub fn is_and(&self)->Vec<SearchQuery>{
+    fn and(left: Self, right: Self) -> Result<KeyWord, String> {
+        Ok(Self::And(
+            Box::new(left),
+            Box::new(right)),
+        )
+    }
+    fn literal(name: &str) -> Result<KeyWord, String> {
+        Ok(Self::Literal(SearchQuery::parser(name)?))
+    }
+    // fn from_token(token: KeyWordToken,value:&str){
+
+    // }
+
+    pub fn is_and(&self) -> Vec<SearchQuery> {
         let mut chain = Vec::new();
-        match self{
-            Self::And(one,two )=>{
-                match one.get_just(){
-                    Some(some)=>chain.push(some),
-                    None=>chain.append(&mut Self::is_and(one))
+        match self {
+            Self::And(one, two) => {
+                match one.get_just() {
+                    Some(some) => chain.push(some),
+                    None => chain.append(&mut Self::is_and(one)),
                 }
-                match two.get_just(){
-                    Some(some)=>chain.push(some),
-                    None=>chain.append(&mut Self::is_and(one))
+                match two.get_just() {
+                    Some(some) => chain.push(some),
+                    None => chain.append(&mut Self::is_and(one)),
                 }
-            },
-            _=>()
+            }
+            _ => (),
         }
 
-
         chain
-
     }
-
-
-
 }
+// fn parse_tokens(input: &Vec<String>) -> Vec<KeyWordToken> {
+//     let mut tokens = Vec::new();
+//     for token in input {
+//         if KeyWord::is_keyword_and(&token) {
+//             tokens.push(KeyWordToken::And);
+//         } else {
+//             tokens.push(KeyWordToken::Literal);
+//         }
+//     }
+//     tokens
+// }
 
-#[derive(Clone, Display,Debug)]
+// fn token_needs_previous(token: KeyWordToken) -> bool {
+//     return matches!(token, KeyWordToken::And | KeyWordToken::Or);
+// }
+
+#[derive(Clone, Display, Debug)]
 pub enum SearchQuery {
     NatDex(u16),
     Name(String),
