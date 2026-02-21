@@ -242,10 +242,7 @@ impl PokeDexMmap {
             // .par_bridge()
             .map(|line| serde_json::from_str::<Pokemon>(&line).unwrap())
     }
-    #[allow(dead_code)]
-    pub(crate) fn get(&self, name: &str) -> Pokemon {
-        self.find_by_name(name).unwrap()
-    }
+
 }
 
 impl Pokedex for PokeDexMmap {

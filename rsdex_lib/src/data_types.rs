@@ -182,7 +182,6 @@ pub enum EggGroup {
     #[strum(to_string = "dragon")]
     Dragon,
     NoEggs,
-    Genderunknown,
     None,
 }
 impl<'d> Null<'d> for EggGroup {
