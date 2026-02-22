@@ -22,25 +22,23 @@ fn main() {
         return;
     }
 
-    if args.search_queries.is_empty(){
+    if args.search_queries.is_empty() {
         println!("please add an argument or use --help for help");
         return;
     }
 
-
-
-
     let search_queries =
         KeyWord::parse(&mut args.search_queries.into_iter()).expect("paring failed");
-    let pokemon = pokedex.search_many(search_queries);
+    let mut search_result = pokedex.search_many(search_queries);
 
     if let Some(fp) = args.file_path {
-        pokemon
+        search_result
             .write_data_to_file(&fp, detail_level, args.write_mode, args.pretty)
             .expect("something went wrong while saving your file");
         println!("writing succesfull")
     } else {
-        pokemon.print_data(detail_level);
+        search_result.sort();
+        search_result.print_data(detail_level);
     }
 }
 

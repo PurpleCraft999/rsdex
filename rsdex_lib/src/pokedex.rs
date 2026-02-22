@@ -25,14 +25,7 @@ pub struct PokedexSearchResult {
     vec: Vec<Pokemon>,
 }
 impl PokedexSearchResult {
-    pub fn new(mut vec: Vec<Pokemon>) -> Self {
-        vec.sort_by(|o, t| {
-            if o.get_dex_number() > t.get_dex_number() {
-                std::cmp::Ordering::Greater
-            } else {
-                std::cmp::Ordering::Less
-            }
-        });
+    pub fn new(vec: Vec<Pokemon>) -> Self {
         Self { vec }
     }
     pub fn append(&mut self, other: &mut PokedexSearchResult) {
@@ -47,13 +40,12 @@ impl PokedexSearchResult {
                 return_vec.push(pkmn.clone());
             }
         }
-        // println!("{:?}",return_vec);
-        // if return_vec.is_empty() {
-        //     self.vec.clone()
-        // } else {
-        //     return_vec
-        // }
         return_vec
+    }
+    //sorts in dex order
+    pub fn sort(&mut self){
+        self.vec.sort_by(|o, t| o.get_dex_number().cmp(t.get_dex_number()));
+
     }
 
     pub fn print_data(&self, detail_level: u8) {
@@ -62,9 +54,12 @@ impl PokedexSearchResult {
             println!("sorry we couldn't find any thing in our data");
             return;
         }
+        let mut out = String::new();
         for pokemon in &self.vec {
-            pokemon.print(detail_level);
+            out += &pokemon.get_display(detail_level);
+            out += "\n"
         }
+        println!("{out}")
     }
     pub fn get_if_single(&self) -> Option<&Pokemon> {
         if self.vec.len() == 1 {
@@ -314,7 +309,5 @@ pub trait Pokedex {
                 result
             }
         }
-
-        
     }
 }

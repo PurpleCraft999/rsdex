@@ -40,16 +40,6 @@ impl Display for Pokemon {
     }
 }
 impl Pokemon {
-    // fn possible_empty_value_stringer<'n, N: Null<'n> + PartialEq + Display>(
-    //     pos_null: &N,
-    // ) -> String {
-    //     if *pos_null != N::null() {
-    //         pos_null.to_string()
-    //     } else {
-    //         "".into()
-    //     }
-    // }
-
     pub fn get_as_vec(&self, detail_level: u8) -> Vec<(&str, String)> {
         let mut vec = Vec::new();
         vec.push(("name", capitalize_first_letter(&self.name)));
@@ -79,10 +69,6 @@ impl Pokemon {
             vec.push(("speed", self.speed.to_string()));
         }
         vec
-        // vec.iter()
-        //     .map(|(k, v)| (k.to_string(), v.to_string()))
-        //     .collect()
-        // map
     }
 
     pub fn get_as_map(&self, detail_level: u8) -> HashMap<&str, String> {
@@ -107,10 +93,10 @@ impl Pokemon {
         data_string
     }
 
-    pub fn print(&self, detail_level: u8) {
-        println!("{}", self.get_display(detail_level));
-        // println!("print data")
-    }
+    // pub fn print(&self, detail_level: u8) {
+    //     println!("{}", self.get_display(detail_level));
+    //     // println!("print data")
+    // }
     pub fn get_name(&self) -> &String {
         &self.name
     }
