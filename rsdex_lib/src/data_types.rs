@@ -210,160 +210,54 @@ pub enum BodyShape {
     Ball,
     Blob,
 }
-macro_rules! parse_if_ok {
-    ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
-        $(
-            if let Ok(val) = $parser($input){
-                return Ok(SearchQuery::$query(val));
-            }
-        )*
-    };
-}
+
 #[derive(Display, Clone, Debug)]
 #[strum(serialize_all = "lowercase")]
 // #[strum_discriminants(name(KeyWordToken),derive(EnumIs))]
 pub enum KeyWord {
+    ///meets all requirements
     And(Box<KeyWord>, Box<KeyWord>),
     Literal(SearchQuery),
     Or(Box<KeyWord>, Box<KeyWord>),
 }
 impl KeyWord {
     pub fn parse(tokens:&mut impl Iterator<Item = String>) -> Result<KeyWord,String> {
-        // let mut tokens: std::vec::IntoIter<KeyWordToken> = parse_tokens(&raw).into_iter();
-        // let mut keywords = Vec::new();
 
         let mut current_keyword=KeyWord::literal(&tokens.next().unwrap())?;
-
-
         while let Some(current_token) = tokens.next(){
-            // let next_value = tokens.peek();
-            if current_token=="and"{
 
-                // let right_value = Self::parse(tokens)?;
-                
-                current_keyword = Self::and(current_keyword, Self::parse(tokens)?)?;
-                // keywords.push(Self::and(raw[curent_token_position], right));
+            current_keyword = match current_token.as_str(){
+                "and"=>Self::and(current_keyword, Self::parse(tokens)?),
+                "or"=>Self::or(current_keyword, Self::parse(tokens)?),
+                other=>return Err("can not reconize key word:".to_owned()+other)
             }
-
-
-
-
-
         }
         Ok(current_keyword)
-
-        // Vec::new()
-        // let mut skip = false;
-        // let mut processed_keywords = Vec::new();
-
-        // for (mut i, token) in tokens.iter().enumerate() {
-        //     // println!("i:{i}");
-        //     // println!("token:{token:?}");
-        //     // println!("value:{}",raw[i]);
-
-        //     if skip {
-        //         skip = false;
-        //         continue;
-        //     }
-        //     // if i>0 && let Some(previous)= tokens.get(i-1){
-        //     //     println!("{previous:?}");
-        //     //     if previous==&KeyWordToken::And{
-        //     //         continue;
-        //     //     }
-        //     // }
-
-        //     // if token==&KeyWordToken::And{
-        //     //     println!("THIS IS AND");
-        //     // }
-
-        //     // if let Some(next) = tokens.get(i + 1) {
-        //     //     //dont proccess this token if it will be apart of the next
-        //     //     if token_needs_previous(*next) {
-        //     //         continue;
-        //     //     }
-        //     // }
-        //     match token {
-        //         KeyWordToken::And => {
-        //             let keyword = KeyWord::and(&processed_keywords[i - 1], &raw[i + 1])
-        //                 .expect("must be a search query before and after `and`");
-        //             processed_keywords.remove(i - 1);
-        //             raw.remove(i + 1);
-        //             i-=1;
-        //             // tokens.remove(i+1);
-        //             processed_keywords.push(keyword);
-        //             skip = true;
-        //         }
-
-        //         KeyWordToken::Literal => {
-        //             processed_keywords
-        //                 .push(KeyWord::literal(&raw[i]).expect("could not parse search query"));
-        //         }
-
-        //         // KeyWordToken::Or => (),
-        //     }
-        // }
-        // // println!("{:?}",processed_keywords);
-        // processed_keywords
     }
 
-
-    
-
-    pub fn get_just(&self) -> Option<SearchQuery> {
-        match self {
-            Self::Literal(q) => Some(q.clone()),
-            _ => None,
-        }
-    }
-
-    fn and(left: Self, right: Self) -> Result<KeyWord, String> {
-        Ok(Self::And(
+    fn and(left: Self, right: Self) -> KeyWord{
+        Self::And(
             Box::new(left),
-            Box::new(right)),
-        )
+            Box::new(right))
+        
     }
     fn literal(name: &str) -> Result<KeyWord, String> {
         Ok(Self::Literal(SearchQuery::parser(name)?))
     }
-    // fn from_token(token: KeyWordToken,value:&str){
-
-    // }
-
-    pub fn is_and(&self) -> Vec<SearchQuery> {
-        let mut chain = Vec::new();
-        match self {
-            Self::And(one, two) => {
-                match one.get_just() {
-                    Some(some) => chain.push(some),
-                    None => chain.append(&mut Self::is_and(one)),
-                }
-                match two.get_just() {
-                    Some(some) => chain.push(some),
-                    None => chain.append(&mut Self::is_and(one)),
-                }
-            }
-            _ => (),
-        }
-
-        chain
+    fn or(left:Self,right:Self)->KeyWord{
+        Self::Or(Box::new(left), Box::new(right))
     }
+
 }
-// fn parse_tokens(input: &Vec<String>) -> Vec<KeyWordToken> {
-//     let mut tokens = Vec::new();
-//     for token in input {
-//         if KeyWord::is_keyword_and(&token) {
-//             tokens.push(KeyWordToken::And);
-//         } else {
-//             tokens.push(KeyWordToken::Literal);
-//         }
-//     }
-//     tokens
-// }
-
-// fn token_needs_previous(token: KeyWordToken) -> bool {
-//     return matches!(token, KeyWordToken::And | KeyWordToken::Or);
-// }
-
+macro_rules! ok_parser {
+    ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
+        $(
+            if let Ok(val) = $parser($input){
+                return Ok(Self::$query(val));
+            }
+        )*
+    };
+}
 #[derive(Clone, Display, Debug)]
 pub enum SearchQuery {
     NatDex(u16),
@@ -381,7 +275,7 @@ impl SearchQuery {
         //     return Ok(Self::Name(input.into()));
         // }
         // let mut parsed: Option<SearchQuery> = None;
-        parse_if_ok!(input,
+        ok_parser!(input,
             crate::pokemon::is_pokemon_name_result=>Name;
             crate::str_to_pokedex_num=>NatDex;
             PokemonType::from_str=>Type;

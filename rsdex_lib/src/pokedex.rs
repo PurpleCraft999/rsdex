@@ -312,7 +312,13 @@ pub trait Pokedex {
                 PokedexSearchResult::new( result.return_duplicate())
             },
             KeyWord::Literal(query)=>self.search(&query),
-            KeyWord::Or(.. )=>PokedexSearchResult::default()
+            KeyWord::Or(left,right)=>{
+                let mut result =self.search_many(*left);
+                result.append(&mut self.search_many(*right));
+                result
+
+
+            }
 
 
 
