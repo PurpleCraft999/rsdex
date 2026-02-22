@@ -43,9 +43,9 @@ impl PokedexSearchResult {
         return_vec
     }
     //sorts in dex order
-    pub fn sort(&mut self){
-        self.vec.sort_by(|o, t| o.get_dex_number().cmp(t.get_dex_number()));
-
+    pub fn sort(&mut self) {
+        self.vec
+            .sort_by(|o, t| o.get_dex_number().cmp(t.get_dex_number()));
     }
 
     pub fn print_data(&self, detail_level: u8) {

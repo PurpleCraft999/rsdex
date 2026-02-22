@@ -4,7 +4,6 @@ use strum::{Display, VariantArray};
 
 #[derive(Display, Clone, Debug, PartialEq)]
 #[strum(serialize_all = "lowercase")]
-// #[strum_discriminants(name(KeyWordToken),derive(EnumIs))]
 pub enum KeyWord {
     ///meets all requirements
     And(Box<KeyWord>, Box<KeyWord>),
@@ -14,6 +13,7 @@ pub enum KeyWord {
 impl KeyWord {
     pub fn parse(tokens: &mut impl Iterator<Item = String>) -> Result<KeyWord, String> {
         let mut current_keyword = KeyWord::literal(&tokens.next().unwrap())?;
+        //to easily use tokens inside the loop
         while let Some(current_token) = tokens.next() {
             current_keyword = match current_token.as_str() {
                 "and" => Self::and(current_keyword, Self::parse(tokens)?),
@@ -32,6 +32,14 @@ impl KeyWord {
     }
     pub fn or(left: Self, right: Self) -> KeyWord {
         Self::Or(Box::new(left), Box::new(right))
+    }
+
+    pub fn iter_to_and<'a>(mut iter: impl Iterator<Item = &'a str>) -> Result<KeyWord, String> {
+        let mut and = Self::literal(iter.next().unwrap())?;
+        for item in iter {
+            and = Self::and(and, Self::literal(item)?)
+        }
+        Ok(and)
     }
 }
 macro_rules! ok_parser {

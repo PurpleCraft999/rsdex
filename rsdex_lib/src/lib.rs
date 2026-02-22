@@ -63,6 +63,8 @@ mod tests {
         }
     }
 
+    type TestResult = Result<(), String>;
+
     use crate::{
         pokedex::{PokeDexMmap, Pokedex, PokedexSearchResult},
         pokemon::Pokemon,
@@ -78,6 +80,23 @@ mod tests {
             assert_eq!(&self.name, find.get_name());
             assert_eq!(&self.nat_dex_num, find.get_dex_number());
         }
+    }
+    fn bug_and_flying_types(dex: &PokeDexMmap) -> Vec<Pokemon> {
+        vec![
+            dex.get("BUTTERFREE"),
+            dex.get("SCYTHER"),
+            dex.get("LEDYBA"),
+            dex.get("LEDIAN"),
+            dex.get("YANMA"),
+            dex.get("BEAUTIFLY"),
+            dex.get("MASQUERAIN"),
+            dex.get("NINJASK"),
+            dex.get("MOTHIM"),
+            dex.get("COMBEE"),
+            dex.get("VESPIQUEN"),
+            dex.get("YANMEGA"),
+            dex.get("VIVILLON"),
+        ]
     }
 
     #[test]
@@ -96,31 +115,15 @@ mod tests {
         );
     }
     #[test]
-    fn multi_search_dual_type() {
+    fn multi_search_dual_type() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
         let result = dex.search_many(KeyWord::and(
-            KeyWord::literal("bug").unwrap(),
-            KeyWord::literal("flying").unwrap(),
+            KeyWord::literal("bug")?,
+            KeyWord::literal("flying")?,
         ));
 
-        assert_eq!(
-            result,
-            PokedexSearchResult::new(vec![
-                dex.get("BUTTERFREE"),
-                dex.get("SCYTHER"),
-                dex.get("LEDYBA"),
-                dex.get("LEDIAN"),
-                dex.get("YANMA"),
-                dex.get("BEAUTIFLY"),
-                dex.get("MASQUERAIN"),
-                dex.get("NINJASK"),
-                dex.get("MOTHIM"),
-                dex.get("COMBEE"),
-                dex.get("VESPIQUEN"),
-                dex.get("YANMEGA"),
-                dex.get("VIVILLON")
-            ])
-        );
+        assert_eq!(result, PokedexSearchResult::new(bug_and_flying_types(&dex)));
+        Ok(())
     }
     // #[test]
     // fn test_multi_search_one() {
@@ -129,11 +132,11 @@ mod tests {
     //     assert_eq!(result, PokedexSearchResult::new(vec![dex.get("bulbasaur")]))
     // }
     #[test]
-    fn test_multi_search_two_differnt() {
+    fn test_multi_search_two_differnt() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
         let result = dex.search_many(KeyWord::and(
-            KeyWord::literal("normal").unwrap(),
-            KeyWord::literal("noeggs").unwrap(),
+            KeyWord::literal("normal")?,
+            KeyWord::literal("noeggs")?,
         ));
         assert_eq!(
             result,
@@ -149,11 +152,20 @@ mod tests {
                 dex.id(773),
                 dex.id(1024)
             ])
-        )
+        );
+        Ok(())
     }
     #[test]
-    fn test_keyword_parse_single_value() {
-        let keyword = KeyWord::parse(&mut ["1".to_owned()].into_iter()).unwrap();
-        assert_eq!(KeyWord::literal("1").unwrap(), keyword);
+    fn test_keyword_parse_single_value() -> TestResult {
+        let keyword = KeyWord::parse(&mut ["1".to_owned()].into_iter())?;
+        assert_eq!(KeyWord::literal("1")?, keyword);
+        Ok(())
     }
+
+    // #[test]
+    // fn test_keyword_parse_basic_and()->TestResult {
+    //     let keyword = KeyWord::parse(&mut ["bug".into(),"and".into(),"flying".into()].into_iter())?;
+    //     assert_eq!(KeyWord::iter_to_and(bug_and_flying_types(&PokeDexMmap::new().unwrap()).into_iter()), keyword);
+    //     Ok(())
+    // }
 }
