@@ -1,8 +1,8 @@
-use std::{cmp::Ordering, ops::Range, str::FromStr};
+use std::{cmp::Ordering, num::ParseIntError, str::FromStr};
 
-use crate::{compute_similarity, pokemon::Null};
+use crate::pokemon::Null;
 use serde::{Deserialize, Serialize};
-use strum::{Display,EnumString, VariantArray};
+use strum::{Display, EnumString, VariantArray};
 
 #[derive(
     Deserialize,
@@ -73,7 +73,7 @@ pub enum PokedexColor {
     Pink,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct StatWithOrder {
     pub stat: PokemonStat,
     pub operation: Ordering,
@@ -102,7 +102,7 @@ pub fn stat_matches_ordering(order: Ordering, stat1: u8, stat2: u8) -> bool {
         Ordering::Less => stat1.cmp(&stat2).is_le(),
     }
 }
-#[derive(Clone, Display, Debug)]
+#[derive(Clone, Display, Debug, PartialEq)]
 pub enum PokemonStat {
     Hp(u8),
     Attack(u8),
@@ -121,28 +121,25 @@ impl FromStr for PokemonStat {
         ]) {
             return Err("no number found".into());
         }
+        let stat_value = str_to_u8(s).map_err(|_| "could not parse stat".to_owned())?;
 
         match s {
-            hp if s.ends_with("hp") => Ok(Self::Hp(str_to_u8(hp))),
-            attack if s.ends_with('a') => Ok(Self::Attack(str_to_u8(attack))),
-            defence if s.ends_with('d') => Ok(Self::Defence(str_to_u8(defence))),
-            special_attack if s.ends_with("sa") => {
-                Ok(Self::SpecialAttack(str_to_u8(special_attack)))
-            }
-            special_defence if s.ends_with("sd") => {
-                Ok(Self::SpecialDefence(str_to_u8(special_defence)))
-            }
-            speed if s.ends_with('s') => Ok(Self::Speed(str_to_u8(speed))),
+            hp if s.ends_with("hp") => Ok(Self::Hp(stat_value)),
+            attack if s.ends_with('a') => Ok(Self::Attack(stat_value)),
+            defence if s.ends_with('d') => Ok(Self::Defence(stat_value)),
+            special_attack if s.ends_with("sa") => Ok(Self::SpecialAttack(stat_value)),
+            special_defence if s.ends_with("sd") => Ok(Self::SpecialDefence(stat_value)),
+            speed if s.ends_with('s') => Ok(Self::Speed(stat_value)),
             _ => Err("could not parse stat from str".into()),
         }
     }
 }
-fn str_to_u8(s: &str) -> u8 {
+fn str_to_u8(s: &str) -> Result<u8, ParseIntError> {
     s.chars()
         .filter(|c| c.is_ascii_digit())
         .collect::<String>()
         .parse()
-        .expect("expected a number but none was found ")
+    // .expect("expected a number but none was found ")
 }
 #[derive(
     Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantArray, Eq, Hash, Debug,
@@ -209,113 +206,4 @@ pub enum BodyShape {
     Heads,
     Ball,
     Blob,
-}
-
-#[derive(Display, Clone, Debug)]
-#[strum(serialize_all = "lowercase")]
-// #[strum_discriminants(name(KeyWordToken),derive(EnumIs))]
-pub enum KeyWord {
-    ///meets all requirements
-    And(Box<KeyWord>, Box<KeyWord>),
-    Literal(SearchQuery),
-    Or(Box<KeyWord>, Box<KeyWord>),
-}
-impl KeyWord {
-    pub fn parse(tokens:&mut impl Iterator<Item = String>) -> Result<KeyWord,String> {
-
-        let mut current_keyword=KeyWord::literal(&tokens.next().unwrap())?;
-        while let Some(current_token) = tokens.next(){
-
-            current_keyword = match current_token.as_str(){
-                "and"=>Self::and(current_keyword, Self::parse(tokens)?),
-                "or"=>Self::or(current_keyword, Self::parse(tokens)?),
-                other=>return Err("can not reconize key word:".to_owned()+other)
-            }
-        }
-        Ok(current_keyword)
-    }
-
-    fn and(left: Self, right: Self) -> KeyWord{
-        Self::And(
-            Box::new(left),
-            Box::new(right))
-        
-    }
-    fn literal(name: &str) -> Result<KeyWord, String> {
-        Ok(Self::Literal(SearchQuery::parser(name)?))
-    }
-    fn or(left:Self,right:Self)->KeyWord{
-        Self::Or(Box::new(left), Box::new(right))
-    }
-
-}
-macro_rules! ok_parser {
-    ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
-        $(
-            if let Ok(val) = $parser($input){
-                return Ok(Self::$query(val));
-            }
-        )*
-    };
-}
-#[derive(Clone, Display, Debug)]
-pub enum SearchQuery {
-    NatDex(u16),
-    Name(String),
-    Type(PokemonType),
-    Color(PokedexColor),
-    Stat(StatWithOrder),
-    EggGroup(EggGroup),
-    Range(Range<u16>),
-}
-use crate::pokedex::POKEMON_NAME_ARRAY;
-impl SearchQuery {
-    pub fn parser(input: &str) -> Result<Self, String> {
-        // if is_pokemon_name(input) {
-        //     return Ok(Self::Name(input.into()));
-        // }
-        // let mut parsed: Option<SearchQuery> = None;
-        ok_parser!(input,
-            crate::pokemon::is_pokemon_name_result=>Name;
-            crate::str_to_pokedex_num=>NatDex;
-            PokemonType::from_str=>Type;
-            PokedexColor::from_str=>Color;
-            StatWithOrder::from_str=>Stat;
-            EggGroup::from_str=>EggGroup;
-            crate::str_to_range=>Range;
-        );
-
-        Err(Self::parsing_error(input))
-    }
-    fn parsing_error(input: &str) -> String {
-        let mut err_vec = Vec::new();
-        err_vec.append(&mut compute_similarity(input, &POKEMON_NAME_ARRAY));
-        err_vec.append(&mut compute_similarity(input, PokedexColor::VARIANTS));
-        err_vec.append(&mut compute_similarity(input, PokemonType::VARIANTS));
-
-        err_vec.append(&mut compute_similarity(input, EggGroup::VARIANTS));
-        let mut did_you_mean_str = String::with_capacity(err_vec.len());
-        if !err_vec.is_empty() {
-            did_you_mean_str.push_str("did you mean: ");
-            for string in err_vec {
-                did_you_mean_str.push_str(&string);
-                did_you_mean_str.push(',');
-            }
-            did_you_mean_str.pop();
-            did_you_mean_str
-        } else {
-            "sorry we couldnt parse the info".into()
-        }
-    }
-    pub fn finds_single(&self) -> bool {
-        matches!(self, SearchQuery::Name(..) | SearchQuery::NatDex(..))
-    }
-    // pub fn can_be_applied_once(&self)->bool{
-    //     matches!(self,Self::Color(..))
-    // }
-}
-impl From<SearchQuery> for KeyWord {
-    fn from(value: SearchQuery) -> Self {
-        KeyWord::Literal(value)
-    }
 }

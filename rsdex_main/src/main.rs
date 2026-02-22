@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use clap::{Parser, value_parser};
 use rsdex_lib::{
-    data_types::KeyWord,
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
+    search::KeyWord,
 };
 
 include!(concat!(env!("OUT_DIR"), "/readme.rs"));
@@ -21,21 +21,18 @@ fn main() {
 
         return;
     }
-    let search_queries = KeyWord::parse(&mut args.search_queries.into_iter()).expect("paring failed");
-    
-    // if search_queries.is_empty() {
-    //     println!("please add an argument or use --help for help");
-    //     return;
-    // }
 
+    if args.search_queries.is_empty(){
+        println!("please add an argument or use --help for help");
+        return;
+    }
+
+
+
+
+    let search_queries =
+        KeyWord::parse(&mut args.search_queries.into_iter()).expect("paring failed");
     let pokemon = pokedex.search_many(search_queries);
-    // if search_queries.len() == 1 {
-    //     pokedex.search(&search_queries[0].get_just().unwrap())
-    // } else {
-    //     pokedex.search_many(search_queries)
-    // };
-
-    // let pokemon = pokedex.search_many(args.search_queries);
 
     if let Some(fp) = args.file_path {
         pokemon

@@ -1,6 +1,7 @@
 use crate::{
-    data_types::{EggGroup, KeyWord, PokedexColor, PokemonType, SearchQuery, StatWithOrder},
+    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder},
     pokemon::Pokemon,
+    search::{KeyWord, SearchQuery},
 };
 use memmap2::Mmap;
 // use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -298,96 +299,22 @@ pub trait Pokedex {
         }
     }
 
-    // fn search()
-
-    ///make this better
-    fn search_many(&self, keyword:KeyWord) -> PokedexSearchResult {
-
-
-        match keyword{
-            KeyWord::And(left,right )=>{
-                let mut result =self.search_many(*left);
+    fn search_many(&self, keyword: KeyWord) -> PokedexSearchResult {
+        match keyword {
+            KeyWord::And(left, right) => {
+                let mut result = self.search_many(*left);
                 // let mut two = ;
                 result.append(&mut self.search_many(*right));
-                PokedexSearchResult::new( result.return_duplicate())
-            },
-            KeyWord::Literal(query)=>self.search(&query),
-            KeyWord::Or(left,right)=>{
-                let mut result =self.search_many(*left);
+                PokedexSearchResult::new(result.return_duplicate())
+            }
+            KeyWord::Literal(query) => self.search(&query),
+            KeyWord::Or(left, right) => {
+                let mut result = self.search_many(*left);
                 result.append(&mut self.search_many(*right));
                 result
-
-
             }
-
-
-
-
-
         }
 
-
-
-
-
-
-
-        // let mut single = Vec::new();
-        // let mut set = HashSet::new();
-        // for query in queries{
-
-        //     match query{
-        //         search if search.finds_single()=>single.push(search),
-        //         once if once.can_be_applied_once() => {single.push(once);},
-        //         checkmate=>()
-        //     }
-        // }
-
-        // let mut singles = Vec::new();
-        // let mut many = PokedexSearchResult::default();
-        // for query in queries {
-        //     if query.finds_single() {
-        //         if let Some(pokemon) = self.search_single(&query).get_if_single() {
-        //             singles.push(pokemon.clone())
-        //         }
-        //     } else {
-        //         many.merge(&mut self.search_single(&query));
-        //     }
-        // }
-        // many = PokedexSearchResult::new(many.filter_for_search());
-        // many.vec.append(&mut singles);
-        // many
-        // let mut results = PokedexSearchResult::default();
         
-        //     match keyword {
-        //         KeyWord::And(..) => {
-        //             // println!("and ");
-        //             let thing = keyword.is_and();
-        //             for thing in thing{
-        //                                         // let mut search = ;
-        //             // search.append(&mut self.search(&thing[1]));
-        //             // println!("{search:?}");
-        //                 results.append(&mut self.search(&thing));
-
-
-        //             }
-        //             results =PokedexSearchResult::new(results.return_dupelicates());
-
-                    
-        //             // results = PokedexSearchResult::new(results.remove_dupelicates());
-
-        //         }
-        //         KeyWord::Literal(query) => results.append(&mut self.search(&query)),
-        //         KeyWord::Or(..) => unreachable!(),
-        //     }
-        //     // match token{
-        //     //     SearchToken::Query(query)=>results.merge(&mut self.search_single(&query)),
-        //     //     SearchToken::KeyWord(keyword)=>()
-        //     // }
-        //     // results.merge(&mut self.search_single(&query))
-        // }
-
-        // results
-        // PokedexSearchResult::default()
     }
 }
