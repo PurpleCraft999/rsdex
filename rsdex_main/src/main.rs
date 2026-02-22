@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use clap::{Parser, value_parser};
 use rsdex_lib::{
-    data_types::SearchQuery,
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
+    search::KeyWord,
 };
 
 include!(concat!(env!("OUT_DIR"), "/readme.rs"));
@@ -21,20 +21,18 @@ fn main() {
 
         return;
     }
-    let search_queries = args.search_queries;
 
-    if search_queries.is_empty() {
+    if args.search_queries.is_empty(){
         println!("please add an argument or use --help for help");
         return;
     }
 
-    let pokemon = if search_queries.len() == 1 {
-        pokedex.search_single(&search_queries[0])
-    } else {
-        pokedex.search_many(search_queries)
-    };
 
-    // let pokemon = pokedex.search_many(args.search_queries);
+
+
+    let search_queries =
+        KeyWord::parse(&mut args.search_queries.into_iter()).expect("paring failed");
+    let pokemon = pokedex.search_many(search_queries);
 
     if let Some(fp) = args.file_path {
         pokemon
@@ -49,8 +47,8 @@ fn main() {
 #[derive(clap::Parser)]
 #[command(version, disable_help_flag = true)]
 struct RsdexArgs {
-    #[arg(value_parser = SearchQuery::parser)]
-    search_queries: Vec<SearchQuery>,
+    // #[arg]
+    search_queries: Vec<String>,
 
     #[arg(long, short,value_parser = value_parser!(u8).range(0..=5),default_value_t=0)]
     detailed: u8,
