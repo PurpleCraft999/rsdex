@@ -79,7 +79,7 @@ it accepts numbers  1 ≤ n ≤ max pokedex number
 
 
 <h3>Compound Searches</h3>
-if you do <code>rsdex blue fire</code> you will get cerulege because they are both blue and fire type 
+if you do <code>rsdex blue and fire</code> you will get cerulege because they are both blue and fire type 
 
 
 <h2>Flags</h2>

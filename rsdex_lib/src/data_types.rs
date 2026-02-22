@@ -23,7 +23,11 @@ pub enum PokemonType {
     Normal,
     Fire,
     Water,
+    #[strum(serialize = "grasstype")]
+    #[strum(to_string = "grass")]
     Grass,
+    #[strum(serialize = "flyingtype")]
+    #[strum(to_string = "flying")]
     Flying,
     Fighting,
     Poison,
@@ -32,11 +36,17 @@ pub enum PokemonType {
     Rock,
     Psychic,
     Ice,
+     #[strum(serialize = "bugtype")]
+    #[strum(to_string = "bug")]
     Bug,
     Ghost,
     Steel,
+    #[strum(serialize = "dragontype")]
+    #[strum(to_string = "dragon")]
     Dragon,
     Dark,
+    #[strum(serialize = "fairytype")]
+    #[strum(to_string = "fairy")]
     Fairy,
     None,
 }
