@@ -5,27 +5,7 @@ fn main() {
 }
 
 fn remove_useless_markdown(string: &mut String) {
-    // let bytes = string.bytes();
-    let headers = ["<h2>", "<h3>"];
-    replace_in_string(string, &headers, "");
-    // let closing_headers= ["</h2>"];
-    let closing_headers = headers
-        .iter()
-        .map(|header| {
-            let mut h = header.to_string();
-            h.insert(1, '/');
-            h
-        })
-        .collect::<Vec<String>>();
-    let closing_headers = closing_headers
-        .iter()
-        .map(|s| s.as_str())
-        .collect::<Vec<&str>>();
-    // println!("cargo::warning={closing_headers:?}");
-
-    replace_in_string(string, &closing_headers, "");
-
-    // the  stuff at top
+    // the stuff at top
     replace_in_string(
         string,
         &[

@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use clap::{Parser, value_parser};
+use pulldown_cmark::{Event, Tag, TagEnd};
 use rsdex_lib::{
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
     search::KeyWord,
@@ -17,8 +18,20 @@ fn main() {
     };
 
     if args.help {
-        termimad::print_text(READ_ME);
-
+        let parser =pulldown_cmark::Parser::new(READ_ME);
+        // parser.map(f)
+        for event in parser{
+            match event {
+                Event::SoftBreak=>println!(),
+                Event::HardBreak=>println!(),
+                Event::Code(code)=>print!("\x1b[48;5;239m{code}\x1b[0m"),
+                Event::Text(text)=>print!("{text}"),
+                //double new lines is intentional
+                Event::Start(Tag::Heading { ..}) =>print!("\n\n\x1B[1m"),
+                Event::End(TagEnd::Heading(_))=>println!("\x1b[0m\n"),
+                _=>()
+            }
+        }
         return;
     }
 

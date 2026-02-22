@@ -81,23 +81,6 @@ mod tests {
             assert_eq!(&self.nat_dex_num, find.get_dex_number());
         }
     }
-    fn bug_and_flying_types(dex: &PokeDexMmap) -> Vec<Pokemon> {
-        vec![
-            dex.get("BUTTERFREE"),
-            dex.get("SCYTHER"),
-            dex.get("LEDYBA"),
-            dex.get("LEDIAN"),
-            dex.get("YANMA"),
-            dex.get("BEAUTIFLY"),
-            dex.get("MASQUERAIN"),
-            dex.get("NINJASK"),
-            dex.get("MOTHIM"),
-            dex.get("COMBEE"),
-            dex.get("VESPIQUEN"),
-            dex.get("YANMEGA"),
-            dex.get("VIVILLON"),
-        ]
-    }
 
     #[test]
     fn test_pokedex_on_bulbasaur() {
@@ -122,13 +105,27 @@ mod tests {
             KeyWord::literal("flying")?,
         ));
 
-        assert_eq!(result, PokedexSearchResult::new(bug_and_flying_types(&dex)));
+        assert_eq!(result, PokedexSearchResult::new(vec![
+            dex.get("BUTTERFREE"),
+            dex.get("SCYTHER"),
+            dex.get("LEDYBA"),
+            dex.get("LEDIAN"),
+            dex.get("YANMA"),
+            dex.get("BEAUTIFLY"),
+            dex.get("MASQUERAIN"),
+            dex.get("NINJASK"),
+            dex.get("MOTHIM"),
+            dex.get("COMBEE"),
+            dex.get("VESPIQUEN"),
+            dex.get("YANMEGA"),
+            dex.get("VIVILLON"),
+        ]));
         Ok(())
     }
     // #[test]
     // fn test_multi_search_one() {
     //     let dex = PokeDexMmap::new().unwrap();
-    //     let result = dex.search_many([SearchQuery::NatDex(1)]);
+    //     let result = dex.search_many(KeyWord::literal("1"));
     //     assert_eq!(result, PokedexSearchResult::new(vec![dex.get("bulbasaur")]))
     // }
     #[test]
@@ -162,10 +159,4 @@ mod tests {
         Ok(())
     }
 
-    // #[test]
-    // fn test_keyword_parse_basic_and()->TestResult {
-    //     let keyword = KeyWord::parse(&mut ["bug".into(),"and".into(),"flying".into()].into_iter())?;
-    //     assert_eq!(KeyWord::iter_to_and(bug_and_flying_types(&PokeDexMmap::new().unwrap()).into_iter()), keyword);
-    //     Ok(())
-    // }
 }

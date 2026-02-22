@@ -33,14 +33,6 @@ impl KeyWord {
     pub fn or(left: Self, right: Self) -> KeyWord {
         Self::Or(Box::new(left), Box::new(right))
     }
-
-    pub fn iter_to_and<'a>(mut iter: impl Iterator<Item = &'a str>) -> Result<KeyWord, String> {
-        let mut and = Self::literal(iter.next().unwrap())?;
-        for item in iter {
-            and = Self::and(and, Self::literal(item)?)
-        }
-        Ok(and)
-    }
 }
 macro_rules! ok_parser {
     ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
