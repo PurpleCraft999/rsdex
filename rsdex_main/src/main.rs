@@ -7,8 +7,6 @@ use rsdex_lib::{
     search::KeyWord,
 };
 
-include!(concat!(env!("OUT_DIR"), "/readme.rs"));
-
 fn main() {
     let args = RsdexArgs::parse();
     let detail_level = args.detailed;
@@ -18,33 +16,7 @@ fn main() {
     };
 
     if args.help {
-        let parser =pulldown_cmark::Parser::new(READ_ME);
-        let mut list=false;
-        for event in parser{
-            match event {
-                Event::SoftBreak=>println!(),
-                Event::HardBreak=>println!(),
-                Event::Code(code)=>print!("\x1b[48;5;239m{code}\x1b[0m"),
-                Event::Text(text)=>{
-                    if list{
-                        println!("* {text}")
-                    } else{
-                        print!("{text}")
-
-                    }
-                },
-                //double new lines is intentional
-                Event::Start(Tag::Heading {level, ..}) => match level {
-                    HeadingLevel::H3=> print!("\n\n\x1B[1m"),
-                    HeadingLevel::H2=> print!("\n\n\x1B[1;4m"),
-                    _=>()
-                },
-                Event::Start(Tag::List(..))=>list=true,
-                Event::End(TagEnd::List(..))=>list=false,
-                Event::End(TagEnd::Heading(_))=>println!("\x1b[0m\n"),
-                _=>()
-            }
-        }
+        print_read_me();
         return;
     }
 
@@ -54,7 +26,8 @@ fn main() {
     }
 
     let search_queries =
-        KeyWord::parse(&mut args.search_queries.into_iter()).expect("paring failed");
+        KeyWord::parse(&mut args.search_queries.into_iter().map(|s| s.to_lowercase()))
+            .expect("paring failed");
     let mut search_result = pokedex.search_many(search_queries);
 
     if let Some(fp) = args.file_path {
@@ -84,4 +57,36 @@ struct RsdexArgs {
     pretty: bool,
     #[arg(long)]
     help: bool,
+}
+include!(concat!(env!("OUT_DIR"), "/readme.rs"));
+fn print_read_me() {
+    let parser = pulldown_cmark::Parser::new(READ_ME);
+    let mut list = false;
+    for event in parser {
+        match event {
+            Event::SoftBreak => println!(),
+            Event::HardBreak => println!(),
+            Event::Code(code) => print!("\x1b[48;5;235m{code}\x1b[0m"),
+            Event::Text(text) => {
+                if list {
+                    println!("* {text}")
+                } else {
+                    print!("{text}")
+                }
+            }
+            //double new lines is intentional
+            Event::Start(Tag::Heading { level, .. }) => match level {
+                //bold
+                HeadingLevel::H3 => print!("\n\n\x1B[1m"),
+                //bold and underline
+                HeadingLevel::H2 => print!("\n\n\x1B[1;4m"),
+                _ => (),
+            },
+            Event::Start(Tag::List(..)) => list = true,
+            Event::End(TagEnd::List(..)) => list = false,
+            Event::End(TagEnd::Heading(_)) => println!("\x1b[0m\n"),
+            _ => (),
+        }
+    }
+    println!()
 }

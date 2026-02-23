@@ -265,7 +265,6 @@ pub trait Pokedex {
         self.find_single_pokemon(|pokemon| pokemon.get_dex_number() == dex_num)
     }
     fn find_by_name(&self, name: &str) -> SingleSearchReturn {
-        let name: &str = &name.to_lowercase();
         self.find_single_pokemon(|pkmn| pkmn.get_name() == name)
     }
     fn find_by_color(&self, color: &PokedexColor) -> MultiSearchReturn {

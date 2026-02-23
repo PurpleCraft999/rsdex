@@ -56,7 +56,7 @@ mod tests {
 
     impl PokeDexMmap {
         fn get(&self, name: &str) -> Pokemon {
-            self.find_by_name(name).unwrap()
+            self.find_by_name(&name.to_lowercase()).unwrap()
         }
         fn id(&self, id: u16) -> Pokemon {
             self.find_by_natinal_dex_number(&id).unwrap()
@@ -122,12 +122,13 @@ mod tests {
         ]));
         Ok(())
     }
-    // #[test]
-    // fn test_multi_search_one() {
-    //     let dex = PokeDexMmap::new().unwrap();
-    //     let result = dex.search_many(KeyWord::literal("1"));
-    //     assert_eq!(result, PokedexSearchResult::new(vec![dex.get("bulbasaur")]))
-    // }
+    #[test]
+    fn test_multi_search_one()->TestResult {
+        let dex = PokeDexMmap::new().unwrap();
+        let result = dex.search_many(KeyWord::literal("1")?);
+        assert_eq!(result, PokedexSearchResult::new(vec![dex.get("bulbasaur")]));
+        Ok(())
+    }
     #[test]
     fn test_multi_search_two_differnt() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();

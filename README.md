@@ -1,6 +1,4 @@
 # rsdex &emsp; [![Latest Version]][crates.io]  [![Latest Release Banner]][Latest Release]
-
-
 [Latest Release Banner]:https://img.shields.io/badge/Latest-release-blue
 [Latest Version]: https://img.shields.io/crates/v/rsdex.svg
 [Latest Release]:https://github.com/PurpleCraft999/rsdex/releases/latest/
@@ -8,16 +6,14 @@
 
 
 
-A  little command line tool written in rust that acts like the pokedex 
+A little command line tool written in rust that acts like the pokedex 
 
 Thank you to PokeAPI for providing the data for this project
-
 
 ## Installing
 
 ### Rust
-if you have rust installed you can use 
-<code>cargo install rsdex</code>
+if you have rust installed you can use <code>cargo install rsdex</code>
 
 ### Windows
 go to the latest release and copy the power shell script into the command prompt and let it do its work
@@ -29,20 +25,22 @@ go to the latest release and copy the shell script into the terminal
 
 ## Usage
 
-### Dex and Name
+### General Tips
+results will always be in pokedex order
+everything is case insensitive 
 
+
+### Dex and Name
 `rsdex 1` which will return bulbasaur's pokedex entry or
 `rsdex bulbasaur` witch will also return bulbasaur pokedex info
 if the pokemon has a space in the name replace it with a `-` 
 
 
 ### Type and Color
-
 `rsdex fire` to get all fire type pokemon or
 `rsdex blue` to get all the blue pokemon
 
 ### Stat
-
 To filter by stat you append the stat you want to the end such as 
 `rsdex 20hp` for Health
 `rsdex 20a` for Attack
@@ -60,8 +58,7 @@ you can also do get stats with ≤ or ≥ the stat value by adding `l` or `g` to
 
 
 ### Egg Group
-
-filtering by egg group is posible and for the egg groups that share a name with types add egg to the end
+for the egg groups that share a name with types add egg to the end
 
 `rsdex field` for pokemon in the field egg group
 `rsdex fairyegg` for the fairy egg group
@@ -94,7 +91,7 @@ Example
 
 ### Writing to file
 
-when you do ` rsdex red --fp "red_pokemon.json"` it will save the reasults to the specified file path
+when you do `rsdex red --fp "red_pokemon.json"` it will save the reasults to the specified file path
 you can also add the --write_mode write mode to the end of it to change the write mode to another type
 it also takes into acount the level of detail set 
 the pretty flag is set the write will be pretty if available
