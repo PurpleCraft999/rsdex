@@ -16,7 +16,7 @@ dist = true
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }
 pulldown-cmark = {version = "0.13.0",default-features = false}
-rsdex_lib = { path = "../rsdex_lib"}
+rsdex_lib = { version = "0.1.87"}
 
 
 
