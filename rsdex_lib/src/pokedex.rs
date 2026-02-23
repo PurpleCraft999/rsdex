@@ -1,6 +1,6 @@
 use crate::{
     data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder},
-    pokemon::Pokemon,
+    pokemon::{Pokemon, PokemonName},
     search::{KeyWord, SearchQuery},
 };
 use memmap2::Mmap;
@@ -264,7 +264,7 @@ pub trait Pokedex {
     fn find_by_natinal_dex_number(&self, dex_num: &u16) -> SingleSearchReturn {
         self.find_single_pokemon(|pokemon| pokemon.get_dex_number() == dex_num)
     }
-    fn find_by_name(&self, name: &str) -> SingleSearchReturn {
+    fn find_by_name(&self, name: &PokemonName) -> SingleSearchReturn {
         self.find_single_pokemon(|pkmn| pkmn.get_name() == name)
     }
     fn find_by_color(&self, color: &PokedexColor) -> MultiSearchReturn {

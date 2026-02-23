@@ -46,7 +46,7 @@ macro_rules! ok_parser {
 #[derive(Clone, Display, Debug, PartialEq)]
 pub enum SearchQuery {
     NatDex(u16),
-    Name(String),
+    Name(PokemonName),
     Type(PokemonType),
     Color(PokedexColor),
     Stat(StatWithOrder),
@@ -56,16 +56,13 @@ pub enum SearchQuery {
 use crate::{
     compute_similarity,
     data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder},
-    pokedex::POKEMON_NAME_ARRAY,
+    pokemon::PokemonName,
 };
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
-        // if is_pokemon_name(input) {
-        //     return Ok(Self::Name(input.into()));
-        // }
-        // let mut parsed: Option<SearchQuery> = None;
+        println!("{input}");
         ok_parser!(input,
-            crate::pokemon::is_pokemon_name_result=>Name;
+            crate::pokemon::PokemonName::from_str=>Name;
             crate::str_to_pokedex_num=>NatDex;
             PokemonType::from_str=>Type;
             PokedexColor::from_str=>Color;
@@ -78,7 +75,7 @@ impl SearchQuery {
     }
     fn parsing_error(input: &str) -> String {
         let mut err_vec = Vec::new();
-        err_vec.append(&mut compute_similarity(input, &POKEMON_NAME_ARRAY));
+        err_vec.append(&mut compute_similarity(input, PokemonName::VARIANTS));
         err_vec.append(&mut compute_similarity(input, PokedexColor::VARIANTS));
         err_vec.append(&mut compute_similarity(input, PokemonType::VARIANTS));
 

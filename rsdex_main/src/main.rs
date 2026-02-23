@@ -44,9 +44,7 @@ fn main() {
 #[derive(clap::Parser)]
 #[command(version, disable_help_flag = true)]
 struct RsdexArgs {
-    // #[arg]
     search_queries: Vec<String>,
-
     #[arg(long, short,value_parser = value_parser!(u8).range(0..=5),default_value_t=0)]
     detailed: u8,
     #[arg(long, alias("fp"))]

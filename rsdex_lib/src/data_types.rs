@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, num::ParseIntError, str::FromStr};
 
-use crate::pokemon::Null;
+use crate::pokemon::Nullable;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 
@@ -36,7 +36,7 @@ pub enum PokemonType {
     Rock,
     Psychic,
     Ice,
-     #[strum(serialize = "bugtype")]
+    #[strum(serialize = "bugtype")]
     #[strum(to_string = "bug")]
     Bug,
     Ghost,
@@ -50,7 +50,7 @@ pub enum PokemonType {
     Fairy,
     None,
 }
-impl<'n> Null<'n> for PokemonType {
+impl<'n> Nullable<'n> for PokemonType {
     fn null() -> Self {
         Self::None
     }
@@ -191,7 +191,7 @@ pub enum EggGroup {
     NoEggs,
     None,
 }
-impl<'d> Null<'d> for EggGroup {
+impl<'d> Nullable<'d> for EggGroup {
     fn null() -> Self {
         Self::None
     }
@@ -216,4 +216,9 @@ pub enum BodyShape {
     Heads,
     Ball,
     Blob,
+}
+impl<'de> Nullable<'de> for String {
+    fn null() -> Self {
+        String::from("none")
+    }
 }

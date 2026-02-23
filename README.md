@@ -5,10 +5,9 @@
 [crates.io]: https://crates.io/crates/rsdex
 
 
-
 A little command line tool written in rust that acts like the pokedex 
 
-Thank you to PokeAPI for providing the data for this project
+Thank you to PokéAPI for providing the data for this project
 
 ## Installing
 
@@ -16,7 +15,7 @@ Thank you to PokeAPI for providing the data for this project
 if you have rust installed you can use <code>cargo install rsdex</code>
 
 ### Windows
-go to the latest release and copy the power shell script into the command prompt and let it do its work
+go to the latest release and copy the power shell script into the command prompt
 
 
 ### Linux
