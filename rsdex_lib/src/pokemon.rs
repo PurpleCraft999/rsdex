@@ -2,7 +2,12 @@ use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
-// use crate::pokedex::PokedexColor;
+include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
+impl<'de> Nullable<'de> for PokemonAbility {
+    fn null() -> Self {
+        PokemonAbility::None
+    }
+}
 use crate::data_types::{
     BodyShape, EggGroup, PokedexColor, PokemonStat, PokemonType, StatWithOrder,
     stat_matches_ordering,
@@ -19,11 +24,11 @@ pub struct Pokemon {
     color: PokedexColor,
     genus: String,
 
-    ability1: String,
+    ability1: PokemonAbility,
     #[serde(deserialize_with = "null_parser")]
-    ability2: String,
+    ability2: PokemonAbility,
     #[serde(deserialize_with = "null_parser")]
-    hidden_ability: String,
+    hidden_ability: PokemonAbility,
 
     hp: u8,
     attack: u8,
@@ -54,8 +59,8 @@ impl Pokemon {
             (2, ("color", self.color.to_string())),
             (2, ("egg group 1", self.egg_group1.to_string())),
             (2, ("egg group 2", self.egg_group2.to_string())),
-            (3,("ability",self.ability1.to_string())),
-            (3,("ability",self.ability2.to_string())),
+            (3,("ability 1",self.ability1.to_string())),
+            (3,("ability 2",self.ability2.to_string())),
             (3,("hidden ability",self.hidden_ability.to_string())),
             (3, ("shape", self.shape.to_string())),
             (4, ("hp", self.hp.to_string())),
@@ -123,6 +128,15 @@ impl Pokemon {
     pub fn get_egg_group_2(&self) -> &EggGroup {
         &self.egg_group2
     }
+    pub fn get_ability_1(&self) -> &PokemonAbility {
+        &self.ability1
+    }
+    pub fn get_ability_2(&self) -> &PokemonAbility {
+        &self.ability2
+    }
+    pub fn get_hidden_ability(&self) -> &PokemonAbility {
+        &self.hidden_ability
+    }
     pub fn stat_matches(&self, stat: &StatWithOrder) -> bool {
         let order = stat.operation;
         match stat.stat {
@@ -151,14 +165,3 @@ where
 pub trait Nullable<'de>: Deserialize<'de> {
     fn null() -> Self;
 }
-// impl Display for PokemonName {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{self:?}")
-//     }
-// }
-// impl TryFrom<&str> for PokemonName {
-//     type Error = String;
-//     fn try_from(value: &str) -> Result<Self, Self::Error> {
-//         PokemonName::from_str(value)
-//     }
-// }

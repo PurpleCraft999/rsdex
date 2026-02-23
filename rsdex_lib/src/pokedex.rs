@@ -1,6 +1,6 @@
 use crate::{
     data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder},
-    pokemon::{Pokemon, PokemonName},
+    pokemon::{Pokemon, PokemonAbility, PokemonName},
     search::{KeyWord, SearchQuery},
 };
 use memmap2::Mmap;
@@ -281,6 +281,13 @@ pub trait Pokedex {
     fn find_within_range_nat_dex(&self, range: &Range<u16>) -> MultiSearchReturn {
         self.find_many_pokemon(|pokemon| range.contains(pokemon.get_dex_number()))
     }
+    fn find_by_ability(&self, ability: &PokemonAbility) -> MultiSearchReturn {
+        self.find_many_pokemon(|pokemon| {
+            pokemon.get_ability_1() == ability
+                || pokemon.get_ability_2() == ability
+                || pokemon.get_hidden_ability() == ability
+        })
+    }
     fn search(&self, value: &SearchQuery) -> PokedexSearchResult {
         match value {
             SearchQuery::NatDex(dex_num) => self.find_by_natinal_dex_number(dex_num).into(),
@@ -290,6 +297,7 @@ pub trait Pokedex {
             SearchQuery::Stat(stat) => self.find_by_stat(stat).into(),
             SearchQuery::EggGroup(group) => self.find_by_egg_group(group).into(),
             SearchQuery::Range(range) => self.find_within_range_nat_dex(range).into(),
+            SearchQuery::Ability(ability) => self.find_by_ability(ability).into(),
         }
     }
 
