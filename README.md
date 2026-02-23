@@ -67,6 +67,9 @@ if you need the pokemon between say 50 and 100 you can do that with
 <code>rsdex 50..100</code>
 it accepts numbers  1 ≤ n ≤ max pokedex number
 
+### Abilities
+<code>rsdex protean</code>
+
 
 ## Compound Searches
 
@@ -82,10 +85,15 @@ it accepts numbers  1 ≤ n ≤ max pokedex number
 <code>rsdex flying and bug</code> returning all the bug and flying types
 <code>rsdex red or green</code> returns all pokemon that have the color of red or the color of green
 
-## Flags
-if you add --detailed or -d to the end of a search along with a number 0-5 and you'll get a more detailed summary
-Example
-<code>rsdex 1 -d 5</code>
+## Detail Levels
+* 0     the default with just name and dex number
+* 1     adds genus and types
+* 2     egg groups and color
+* 3     abilities and shape
+* 4     stats
+* 5     reserved for future use
+
+
 
 
 ### Writing to file
