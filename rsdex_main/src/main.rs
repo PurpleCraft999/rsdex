@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::{Parser, value_parser};
-use pulldown_cmark::{Event, Tag, TagEnd};
+use pulldown_cmark::{Event, HeadingLevel, Tag, TagEnd};
 use rsdex_lib::{
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
     search::KeyWord,
@@ -19,15 +19,28 @@ fn main() {
 
     if args.help {
         let parser =pulldown_cmark::Parser::new(READ_ME);
-        // parser.map(f)
+        let mut list=false;
         for event in parser{
             match event {
                 Event::SoftBreak=>println!(),
                 Event::HardBreak=>println!(),
                 Event::Code(code)=>print!("\x1b[48;5;239m{code}\x1b[0m"),
-                Event::Text(text)=>print!("{text}"),
+                Event::Text(text)=>{
+                    if list{
+                        println!("* {text}")
+                    } else{
+                        print!("{text}")
+
+                    }
+                },
                 //double new lines is intentional
-                Event::Start(Tag::Heading { ..}) =>print!("\n\n\x1B[1m"),
+                Event::Start(Tag::Heading {level, ..}) => match level {
+                    HeadingLevel::H3=> print!("\n\n\x1B[1m"),
+                    HeadingLevel::H2=> print!("\n\n\x1B[1;4m"),
+                    _=>()
+                },
+                Event::Start(Tag::List(..))=>list=true,
+                Event::End(TagEnd::List(..))=>list=false,
                 Event::End(TagEnd::Heading(_))=>println!("\x1b[0m\n"),
                 _=>()
             }

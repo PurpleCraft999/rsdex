@@ -29,12 +29,6 @@ go to the latest release and copy the shell script into the terminal
 
 ## Usage
 
-### Multiple Queries
-as of 0.1.60 you can now make as many queries as you want
-for queries that can return multiple pokemon it will return all of them that meet all the critera
-for quiries that only retrun one pokemon it will append the pokemon to the end
-
-
 ### Dex and Name
 
 `rsdex 1` which will return bulbasaur's pokedex entry or
@@ -78,16 +72,24 @@ if you need the pokemon between say 50 and 100 you can do that with
 it accepts numbers  1 ≤ n ≤ max pokedex number
 
 
-### Compound Searches
-if you do <code>rsdex blue and fire</code> you will get cerulege because they are both blue and fire type 
+## Compound Searches
 
+### Key Words
+* and 
+* or
+
+### Use of Key Words
+`and` between arguments will return pokemon with both properties
+`or` between arguments will return pokemon with either property 
+
+### Examples
+<code>rsdex flying and bug</code> returning all the bug and flying types
+<code>rsdex red or green</code> returns all pokemon that have the color of red or the color of green
 
 ## Flags
 if you add --detailed or -d to the end of a search along with a number 0-5 and you'll get a more detailed summary
 Example
 <code>rsdex 1 -d 5</code>
-
-
 
 
 ### Writing to file
