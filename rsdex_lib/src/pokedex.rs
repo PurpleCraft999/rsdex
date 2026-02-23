@@ -216,7 +216,7 @@ impl PokeDexMmap {
         let mut mmap = memmap2::MmapOptions::new()
             .len(POKEDEX_DATA.len())
             .map_anon()?;
-        mmap.copy_from_slice(POKEDEX_DATA);
+        mmap.copy_from_slice(&POKEDEX_DATA);
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }

@@ -39,7 +39,7 @@ fn on_pokedex_data_change() {
     println!("cargo::rerun-if-changed=pokedex.jsonl");
 
     let pokedex_data = format!(
-        "pub const POKEDEX_DATA:&[u8;{}] = &{:?};",
+        "pub const POKEDEX_DATA:[u8;{}] = {:?};",
         POKEMON_DATA.len(),
         POKEMON_DATA
     );
