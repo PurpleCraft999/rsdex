@@ -101,8 +101,8 @@ mod tests {
     fn multi_search_dual_type() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
         let result = dex.search_many(KeyWord::and(
-            KeyWord::literal("bug")?,
-            KeyWord::literal("flying")?,
+            KeyWord::query("bug")?,
+            KeyWord::query("flying")?,
         ));
 
         assert_eq!(
@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn test_multi_search_one() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
-        let result = dex.search_many(KeyWord::literal("1")?);
+        let result = dex.search_many(KeyWord::query("1")?);
         assert_eq!(result, PokedexSearchResult::new(vec![dex.get("bulbasaur")]));
         Ok(())
     }
@@ -136,8 +136,8 @@ mod tests {
     fn test_multi_search_two_differnt() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
         let result = dex.search_many(KeyWord::and(
-            KeyWord::literal("normal")?,
-            KeyWord::literal("noeggs")?,
+            KeyWord::query("normal")?,
+            KeyWord::query("noeggs")?,
         ));
         assert_eq!(
             result,
@@ -159,7 +159,7 @@ mod tests {
     #[test]
     fn test_keyword_parse_single_value() -> TestResult {
         let keyword = KeyWord::parse(&mut ["1".to_owned()].into_iter())?;
-        assert_eq!(KeyWord::literal("1")?, keyword);
+        assert_eq!(KeyWord::query("1")?, keyword);
         Ok(())
     }
 }

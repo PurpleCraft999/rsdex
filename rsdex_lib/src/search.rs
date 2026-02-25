@@ -5,30 +5,37 @@ use strum::{Display, VariantArray};
 #[derive(Display, Clone, Debug, PartialEq)]
 #[strum(serialize_all = "lowercase")]
 pub enum KeyWord {
-    ///meets all requirements
     And(Box<KeyWord>, Box<KeyWord>),
-    Literal(SearchQuery),
+    Query(SearchQuery),
+    /// either or
     Or(Box<KeyWord>, Box<KeyWord>),
 }
 impl KeyWord {
     pub fn parse(tokens: &mut impl Iterator<Item = String>) -> Result<KeyWord, String> {
-        let mut current_keyword = KeyWord::literal(&tokens.next().unwrap())?;
+        let mut current_keyword = KeyWord::query(&tokens.next().unwrap())?;
         //to easily use tokens inside the loop
         while let Some(current_token) = tokens.next() {
             current_keyword = match current_token.as_str() {
-                "and" => Self::and(current_keyword, Self::parse(tokens)?),
+                "and" | "/" => Self::and(current_keyword, Self::parse(tokens)?),
                 "or" => Self::or(current_keyword, Self::parse(tokens)?),
-                other => return Err("can not reconize key word:".to_owned() + other),
+                other => return Err("can not reconize key word: '".to_owned() + other + "'"),
             }
         }
         Ok(current_keyword)
     }
+    ///also parses at the end
+    pub fn preparsing(mut tokens:Vec<String>)->Result<KeyWord, String>{
+        for token in tokens.iter_mut(){
+            *token = token.to_lowercase();
+        }
+        Self::parse(&mut tokens.into_iter())
+    } 
 
     pub fn and(left: Self, right: Self) -> KeyWord {
         Self::And(Box::new(left), Box::new(right))
     }
-    pub fn literal(name: &str) -> Result<KeyWord, String> {
-        Ok(Self::Literal(SearchQuery::parser(name)?))
+    pub fn query(name: &str) -> Result<KeyWord, String> {
+        Ok(Self::Query(SearchQuery::parser(name)?))
     }
     pub fn or(left: Self, right: Self) -> KeyWord {
         Self::Or(Box::new(left), Box::new(right))
@@ -61,7 +68,7 @@ use crate::{
 };
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
-        println!("{input}");
+        // println!("{input}");\
         ok_parser!(input,
             crate::pokemon::PokemonName::from_str=>Name;
             crate::str_to_pokedex_num=>NatDex;
@@ -95,10 +102,4 @@ impl SearchQuery {
             "sorry we couldnt parse the info".into()
         }
     }
-    pub fn finds_single(&self) -> bool {
-        matches!(self, SearchQuery::Name(..) | SearchQuery::NatDex(..))
-    }
-    // pub fn can_be_applied_once(&self)->bool{
-    //     matches!(self,Self::Color(..))
-    // }
 }

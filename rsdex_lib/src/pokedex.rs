@@ -305,11 +305,10 @@ pub trait Pokedex {
         match keyword {
             KeyWord::And(left, right) => {
                 let mut result = self.search_many(*left);
-                // let mut two = ;
                 result.append(&mut self.search_many(*right));
                 PokedexSearchResult::new(result.return_duplicate())
             }
-            KeyWord::Literal(query) => self.search(&query),
+            KeyWord::Query(query) => self.search(&query),
             KeyWord::Or(left, right) => {
                 let mut result = self.search_many(*left);
                 result.append(&mut self.search_many(*right));

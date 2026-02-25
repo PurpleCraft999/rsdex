@@ -94,12 +94,10 @@ impl FromStr for StatWithOrder {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // println!("parsing {s}");
         let stat = PokemonStat::from_str(s)?;
-        let operation = if s.starts_with('l') {
-            Ordering::Less
-        } else if s.starts_with('g') {
-            Ordering::Greater
-        } else {
-            Ordering::Equal
+        let operation = match s{
+            greater if s.starts_with('g')=>Ordering::Greater,
+            less if s.starts_with('l')=>Ordering::Less,
+            _=>Ordering::Equal
         };
 
         Ok(Self { stat, operation })
@@ -216,9 +214,4 @@ pub enum BodyShape {
     Heads,
     Ball,
     Blob,
-}
-impl<'de> Nullable<'de> for String {
-    fn null() -> Self {
-        String::from("none")
-    }
 }

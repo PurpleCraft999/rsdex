@@ -25,9 +25,7 @@ fn main() {
         return;
     }
 
-    let search_queries =
-        KeyWord::parse(&mut args.search_queries.into_iter().map(|s| s.to_lowercase()))
-            .expect("paring failed");
+    let search_queries =KeyWord::preparsing(args.search_queries).expect("paring failed");
     let mut search_result = pokedex.search_many(search_queries);
 
     if let Some(fp) = args.file_path {
