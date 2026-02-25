@@ -55,7 +55,7 @@ fn make_pokemon_name_enum() {
     println!("cargo::rerun-if-changed=pokedex.jsonl");
     //the start of enum
     let mut name_enum = String::from(
-"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Eq,Hash,Debug,strum::EnumString,strum::Display,strum::VariantArray)]
+"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Eq,Hash,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
 #[strum(serialize_all = \"lowercase\", ascii_case_insensitive)]
 #[serde(rename_all = \"kebab-case\")]
 pub enum PokemonName{",
@@ -86,7 +86,7 @@ fn make_pokemon_abilities_enum() {
     }
     let mut abliities = HashSet::new();
     let mut ability_enum = String::from(
-"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Eq,Hash,Debug,strum::EnumString,strum::Display,strum::VariantArray)]
+"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Eq,Hash,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
 #[strum(serialize_all = \"lowercase\", ascii_case_insensitive)]
 #[serde(rename_all = \"kebab-case\")]
 pub enum PokemonAbility{",

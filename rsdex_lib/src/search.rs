@@ -1,6 +1,6 @@
 use std::ops::Range;
 use std::str::FromStr;
-use strum::{Display, VariantArray};
+use strum::{Display, VariantNames};
 
 #[derive(Display, Clone, Debug, PartialEq)]
 #[strum(serialize_all = "lowercase")]

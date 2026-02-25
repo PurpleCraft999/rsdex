@@ -2,7 +2,7 @@ use std::{cmp::Ordering, num::ParseIntError, str::FromStr};
 
 use crate::pokemon::Nullable;
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString, VariantArray};
+use strum::{Display, EnumString, VariantNames};
 
 #[derive(
     Deserialize,
@@ -11,7 +11,7 @@ use strum::{Display, EnumString, VariantArray};
     Copy,
     EnumString,
     Display,
-    VariantArray,
+    VariantNames,
     Serialize,
     Eq,
     Hash,
@@ -62,7 +62,7 @@ impl<'n> Nullable<'n> for PokemonType {
     PartialEq,
     EnumString,
     Display,
-    VariantArray,
+    VariantNames,
     Serialize,
     Eq,
     Hash,
@@ -150,7 +150,7 @@ fn str_to_u8(s: &str) -> Result<u8, ParseIntError> {
     // .expect("expected a number but none was found ")
 }
 #[derive(
-    Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantArray, Eq, Hash, Debug,
+    Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantNames, Eq, Hash, Debug,
 )]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]

@@ -9,7 +9,7 @@ pub mod pokedex;
 pub mod pokemon;
 pub mod search;
 
-pub fn compute_similarity<S: ToString>(string: &str, options: &[S]) -> Vec<String> {
+pub fn compute_similarity(string: &str, options: &[&str]) -> Vec<String> {
     options
         .iter()
         .map(|s| {

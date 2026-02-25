@@ -220,7 +220,6 @@ impl PokeDexMmap {
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }
-    #[allow(clippy::type_complexity)]
     fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon> {
         self.mmap
             .lines()

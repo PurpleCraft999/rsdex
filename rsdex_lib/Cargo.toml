@@ -13,10 +13,9 @@ readme.workspace = true
 path = "src/lib.rs"
 
 [dependencies]
-# rayon = "1.11.0"
 serde_json ={ workspace = true}
 serde = {workspace = true}
-strum = { version = "0.27.2", features = ["derive"] }
+strum = { version = "0.28.0", features = ["derive"] }
 memmap2 = "0.9.9"
 strsim = "0.11.1"
 
