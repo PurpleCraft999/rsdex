@@ -3,7 +3,6 @@ use std::str::FromStr;
 use strum::{Display, VariantNames};
 
 #[derive(Display, Clone, Debug, PartialEq)]
-#[strum(serialize_all = "lowercase")]
 pub enum KeyWord {
     And(Box<KeyWord>, Box<KeyWord>),
     Query(SearchQuery),
@@ -63,16 +62,15 @@ pub enum SearchQuery {
 }
 use crate::{
     compute_similarity,
-    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder},
-    pokemon::{PokemonAbility, PokemonName},
+    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder,PokemonAbility, PokemonName},
 };
 impl SearchQuery {
     pub fn parser(input: &str) -> Result<Self, String> {
         // println!("{input}");\
         ok_parser!(input,
-            crate::pokemon::PokemonName::from_str=>Name;
+            PokemonName::from_str=>Name;
             crate::str_to_pokedex_num=>NatDex;
-            crate::pokemon::PokemonAbility::from_str=>Ability;
+            PokemonAbility::from_str=>Ability;
             PokemonType::from_str=>Type;
             PokedexColor::from_str=>Color;
             StatWithOrder::from_str=>Stat;

@@ -55,8 +55,8 @@ fn make_pokemon_name_enum() {
     println!("cargo::rerun-if-changed=pokedex.jsonl");
     //the start of enum
     let mut name_enum = String::from(
-"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Eq,Hash,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
-#[strum(serialize_all = \"lowercase\", ascii_case_insensitive)]
+"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
+#[strum( ascii_case_insensitive)]
 #[serde(rename_all = \"kebab-case\")]
 pub enum PokemonName{",
     );
@@ -67,9 +67,9 @@ pub enum PokemonName{",
             serde_json::from_str::<PokemonName>(&line).expect("could not parse pokemon from line");
         let name = name.name;
 
-        let original_name = name.clone();
+        let original_name = capitalize_first_letter( name.clone());
 
-        let name = make_upper_camel_case_from_kebab(name);
+        let name = make_camel_case_from_kebab(name);
 
         name_enum.push_str(&format!("#[strum(to_string = \"{original_name}\")]"));
         name_enum.push_str(&name);
@@ -81,13 +81,14 @@ pub enum PokemonName{",
 
 fn make_pokemon_abilities_enum() {
     fn add_ability(ability_enum: &mut String, ability: String) {
+        let ability = capitalize_first_letter(ability);
         ability_enum.push_str(&format!("#[strum(to_string = \"{}\")]", ability.clone()));
-        ability_enum.push_str(&(make_upper_camel_case_from_kebab(ability) + ","));
+        ability_enum.push_str(&(make_camel_case_from_kebab(ability) + ","));
     }
     let mut abliities = HashSet::new();
     let mut ability_enum = String::from(
-"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Eq,Hash,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
-#[strum(serialize_all = \"lowercase\", ascii_case_insensitive)]
+"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
+#[strum(ascii_case_insensitive)]
 #[serde(rename_all = \"kebab-case\")]
 pub enum PokemonAbility{",
     );
@@ -118,15 +119,18 @@ pub enum PokemonAbility{",
     std::fs::write(out_dir("pokemon_ability"), ability_enum).unwrap()
 }
 
-fn make_upper_camel_case_from_kebab(mut kebab: String) -> String {
+fn make_camel_case_from_kebab(mut kebab: String) -> String {
     //replace the  `-`'s
     while let Some(dash_pos) = kebab.find("-") {
         kebab.remove(dash_pos);
         let lower = kebab.remove(dash_pos);
         kebab.insert(dash_pos, lower.to_ascii_uppercase());
     }
-    //capilize first letter
-    let first_letter = kebab.remove(0);
-    kebab.insert(0, first_letter.to_ascii_uppercase());
-    kebab
+    capitalize_first_letter(kebab)
+
+}
+fn capitalize_first_letter(mut name: String)->String{
+    let first_letter = name.remove(0);
+    name.insert(0, first_letter.to_ascii_uppercase());
+    name
 }

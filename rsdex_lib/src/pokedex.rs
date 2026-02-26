@@ -1,6 +1,6 @@
 use crate::{
-    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder},
-    pokemon::{Pokemon, PokemonAbility, PokemonName},
+    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder, PokemonAbility, PokemonName},
+    pokemon::{Pokemon},
     search::{KeyWord, SearchQuery},
 };
 use memmap2::Mmap;
@@ -36,7 +36,7 @@ impl PokedexSearchResult {
         let mut set = HashSet::new();
         let mut return_vec = Vec::new();
         for pkmn in &self.vec {
-            if !set.insert(pkmn) {
+            if !set.insert(pkmn.get_dex_number()) {
                 return_vec.push(pkmn.clone());
             }
         }
@@ -124,7 +124,6 @@ impl Default for PokedexSearchResult {
 }
 // const POKEDEX_DATA = include!()
 #[derive(Clone, Display, EnumString)]
-#[strum(serialize_all = "lowercase")]
 pub enum WriteMode {
     Json,
     Jsonl,

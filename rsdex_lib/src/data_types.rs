@@ -3,7 +3,13 @@ use std::{cmp::Ordering, num::ParseIntError, str::FromStr};
 use crate::pokemon::Nullable;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
-
+include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
+include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
+impl<'de> Nullable<'de> for PokemonAbility {
+    fn null() -> Self {
+        PokemonAbility::None
+    }
+}
 #[derive(
     Deserialize,
     PartialEq,
@@ -13,21 +19,19 @@ use strum::{Display, EnumString, VariantNames};
     Display,
     VariantNames,
     Serialize,
-    Eq,
-    Hash,
     Debug,
 )]
 #[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
+#[strum( ascii_case_insensitive)]
 pub enum PokemonType {
     Normal,
     Fire,
     Water,
     #[strum(serialize = "grasstype")]
-    #[strum(to_string = "grass")]
+    #[strum(to_string = "Grass")]
     Grass,
     #[strum(serialize = "flyingtype")]
-    #[strum(to_string = "flying")]
+    #[strum(to_string = "Flying")]
     Flying,
     Fighting,
     Poison,
@@ -37,16 +41,16 @@ pub enum PokemonType {
     Psychic,
     Ice,
     #[strum(serialize = "bugtype")]
-    #[strum(to_string = "bug")]
+    #[strum(to_string = "Bug")]
     Bug,
     Ghost,
     Steel,
     #[strum(serialize = "dragontype")]
-    #[strum(to_string = "dragon")]
+    #[strum(to_string = "Dragon")]
     Dragon,
     Dark,
     #[strum(serialize = "fairytype")]
-    #[strum(to_string = "fairy")]
+    #[strum(to_string = "Fairy")]
     Fairy,
     None,
 }
@@ -64,12 +68,10 @@ impl<'n> Nullable<'n> for PokemonType {
     Display,
     VariantNames,
     Serialize,
-    Eq,
-    Hash,
     Debug,
 )]
 #[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
+#[strum(ascii_case_insensitive)]
 pub enum PokedexColor {
     Red,
     Blue,
@@ -150,10 +152,10 @@ fn str_to_u8(s: &str) -> Result<u8, ParseIntError> {
     // .expect("expected a number but none was found ")
 }
 #[derive(
-    Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantNames, Eq, Hash, Debug,
+    Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantNames, Debug,
 )]
 #[serde(rename_all = "kebab-case")]
-#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
+#[strum(ascii_case_insensitive)]
 ///for whatever reason these names of some of them are different in the data set then else where
 pub enum EggGroup {
     Monster,
@@ -163,28 +165,28 @@ pub enum EggGroup {
     Water2,
     Water3,
     #[strum(serialize = "bugegg")]
-    #[strum(to_string = "bug")]
+    #[strum(to_string = "Bug")]
     Bug,
     Mineral,
     #[strum(serialize = "flyingegg")]
-    #[strum(to_string = "flying")]
+    #[strum(to_string = "Flying")]
     Flying,
     #[serde(alias = "indeterminate")]
-    #[strum(to_string = "amorphous")]
+    #[strum(to_string = "Amorphous")]
     Amorphous,
     #[serde(alias = "ground")]
-    #[strum(to_string = "field")]
+    #[strum(to_string = "Field")]
     Field,
     #[strum(serialize = "fairyegg")]
-    #[strum(to_string = "fairy")]
+    #[strum(to_string = "Fairy")]
     Fairy,
     Ditto,
     #[serde(alias = "plant")]
     #[strum(serialize = "grassegg")]
-    #[strum(to_string = "grass")]
+    #[strum(to_string = "Grass")]
     Grass,
     #[strum(serialize = "dragonegg")]
-    #[strum(to_string = "dragon")]
+    #[strum(to_string = "Dragon")]
     Dragon,
     NoEggs,
     None,
@@ -195,8 +197,8 @@ impl<'d> Nullable<'d> for EggGroup {
     }
 }
 
-#[derive(Serialize, Deserialize, EnumString, Clone, PartialEq, Eq, Hash, Debug, Display)]
-#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
+#[derive(Serialize, Deserialize, EnumString, Clone, PartialEq, Hash, Debug, Display)]
+#[strum(ascii_case_insensitive)]
 #[serde(rename_all = "kebab-case")]
 pub enum BodyShape {
     Quadruped,

@@ -1,42 +1,31 @@
 use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
-include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
-include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
-impl<'de> Nullable<'de> for PokemonAbility {
-    fn null() -> Self {
-        PokemonAbility::None
-    }
-}
+
 use crate::data_types::{
-    BodyShape, EggGroup, PokedexColor, PokemonStat, PokemonType, StatWithOrder,
-    stat_matches_ordering,
+    BodyShape, EggGroup, PokedexColor, PokemonAbility, PokemonName, PokemonStat, PokemonType, StatWithOrder, stat_matches_ordering
 };
 
-#[derive(Deserialize, Clone, Serialize, PartialEq, Eq, Hash, Debug)]
+#[derive(Deserialize, Serialize, PartialEq, Debug,Clone)]
 pub struct Pokemon {
     name: PokemonName,
     national_dex_number: u16,
     type1: PokemonType,
     #[serde(deserialize_with = "null_parser")]
     type2: PokemonType,
-
     color: PokedexColor,
     genus: String,
-
     ability1: PokemonAbility,
     #[serde(deserialize_with = "null_parser")]
     ability2: PokemonAbility,
     #[serde(deserialize_with = "null_parser")]
     hidden_ability: PokemonAbility,
-
     hp: u8,
     attack: u8,
     defence: u8,
     special_attack: u8,
     special_defence: u8,
     speed: u8,
-
     egg_group1: EggGroup,
     #[serde(deserialize_with = "null_parser")]
     egg_group2: EggGroup,
@@ -93,7 +82,7 @@ impl Pokemon {
     pub fn get_display(&self, detail_level: u8) -> String {
         let mut data_string = String::new();
         for (k, v) in self.get_as_vec(detail_level) {
-            if &v != "none" {
+            if &v != "None" {
                 data_string.push_str(&(k.to_owned() + ": " + &v + "\n"));
             }
             // data_string.push_str(&v);
