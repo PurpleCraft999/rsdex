@@ -2,12 +2,12 @@
 //     println!("cargo:warning={}", message.as_ref());
 // }
 fn main() {
-    on_pokedex_data_change();
+    make_pokedex_data();
     make_pokemon_name_enum();
     make_pokemon_abilities_enum();
+    make_pokemon_genus_enum();
 }
 const POKEMON_DATA: &[u8] = include_bytes!("pokedex.jsonl");
-const MAX_POKEDEX_NUM: u16 = 1025;
 
 use std::{
     collections::HashSet,
@@ -23,6 +23,10 @@ struct PokemonName {
     name: String,
 }
 #[derive(Deserialize)]
+struct PokemonGenus {
+    genus: String,
+}
+#[derive(Deserialize)]
 struct PokemonAbility {
     ability1: Option<String>,
     ability2: Option<String>,
@@ -35,39 +39,32 @@ fn out_dir(file_name: &str) -> PathBuf {
     Path::new(&out_dir).join(file_name.to_string() + ".rs")
 }
 
-fn on_pokedex_data_change() {
+fn make_pokedex_data() {
     println!("cargo::rerun-if-changed=pokedex.jsonl");
 
     let pokedex_data = format!(
-        "pub static POKEDEX_DATA:[u8;{}] = {:?};",
+        "pub static POKEDEX_DATA:[u8;{}] = {:?};\n",
         POKEMON_DATA.len(),
         POKEMON_DATA
     );
-    let max_pokemon_num = format!("pub const MAX_POKEDEX_NUM: u16 = {};", MAX_POKEDEX_NUM);
-    std::fs::write(
-        out_dir("pokedex_data"),
-        String::from_iter([pokedex_data, max_pokemon_num]),
-    )
-    .unwrap();
+    // let max_pokemon_num = format!("pub const MAX_POKEDEX_NUM: u16 = {};", MAX_POKEDEX_NUM);
+    std::fs::write(out_dir("pokedex_data"), pokedex_data).unwrap();
 }
 
 fn make_pokemon_name_enum() {
     println!("cargo::rerun-if-changed=pokedex.jsonl");
     //the start of enum
     let mut name_enum = String::from(
-"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
-#[strum( ascii_case_insensitive)]
-#[serde(rename_all = \"kebab-case\")]
-pub enum PokemonName{",
+        "#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]#[serde(rename_all = \"kebab-case\")]pub enum PokemonName{",
     );
 
     for line in POKEMON_DATA.lines() {
         let line = line.expect("failed to read line");
-        let name =
-            serde_json::from_str::<PokemonName>(&line).expect("could not parse pokemon from line");
-        let name = name.name;
+        let name = serde_json::from_str::<PokemonName>(&line)
+            .expect("could not parse pokemon from line")
+            .name;
 
-        let original_name = capitalize_first_letter( name.clone());
+        let original_name = capitalize_first_letter(name.clone());
 
         let name = make_camel_case_from_kebab(name);
 
@@ -80,17 +77,15 @@ pub enum PokemonName{",
 }
 
 fn make_pokemon_abilities_enum() {
+    println!("cargo::rerun-if-changed=pokedex.jsonl");
     fn add_ability(ability_enum: &mut String, ability: String) {
         let ability = capitalize_first_letter(ability);
-        ability_enum.push_str(&format!("#[strum(to_string = \"{}\")]", ability.clone()));
+        ability_enum.push_str(&format!("#[strum(to_string = \"{ability}\")]"));
         ability_enum.push_str(&(make_camel_case_from_kebab(ability) + ","));
     }
     let mut abliities = HashSet::new();
     let mut ability_enum = String::from(
-"#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]
-#[strum(ascii_case_insensitive)]
-#[serde(rename_all = \"kebab-case\")]
-pub enum PokemonAbility{",
+        "#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]#[serde(rename_all = \"kebab-case\")]pub enum PokemonAbility{",
     );
     for line in POKEMON_DATA.lines() {
         let line = line.expect("failed to read line");
@@ -119,6 +114,34 @@ pub enum PokemonAbility{",
     std::fs::write(out_dir("pokemon_ability"), ability_enum).unwrap()
 }
 
+fn make_pokemon_genus_enum() {
+    println!("cargo::rerun-if-changed=pokedex.jsonl");
+
+    let mut genuses = HashSet::new();
+    let mut genus_enum = String::from(
+        "#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]pub enum PokemonGenus{",
+    );
+    for line in POKEMON_DATA.lines() {
+        let line = line.expect("failed to read line");
+        let genus = serde_json::from_str::<PokemonGenus>(&line)
+            .expect("could not parse genus")
+            .genus;
+
+        if genuses.insert(genus.clone()) {
+            genus_enum.push_str(&format!("#[serde(rename = \"{genus}\")]"));
+            genus_enum.push_str(&format!("#[strum(to_string = \"{genus}\")]"));
+            let enum_name = genus
+                .replace(" ", "")
+                .trim_end_matches("Pokémon")
+                .to_string();
+            genus_enum.push_str(&make_camel_case_from_kebab(enum_name));
+            genus_enum.push(',');
+        }
+    }
+    genus_enum.push('}');
+    std::fs::write(out_dir("pokemon_genus"), genus_enum).unwrap()
+}
+
 fn make_camel_case_from_kebab(mut kebab: String) -> String {
     //replace the  `-`'s
     while let Some(dash_pos) = kebab.find("-") {
@@ -127,9 +150,9 @@ fn make_camel_case_from_kebab(mut kebab: String) -> String {
         kebab.insert(dash_pos, lower.to_ascii_uppercase());
     }
     capitalize_first_letter(kebab)
-
 }
-fn capitalize_first_letter(mut name: String)->String{
+
+fn capitalize_first_letter(mut name: String) -> String {
     let first_letter = name.remove(0);
     name.insert(0, first_letter.to_ascii_uppercase());
     name

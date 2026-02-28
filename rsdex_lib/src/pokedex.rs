@@ -1,6 +1,6 @@
 use crate::{
-    data_types::{EggGroup, PokedexColor, PokemonType, StatWithOrder, PokemonAbility, PokemonName},
-    pokemon::{Pokemon},
+    data_types::{EggGroup, PokedexColor, PokemonAbility, PokemonName, PokemonType, StatWithOrder},
+    pokemon::Pokemon,
     search::{KeyWord, SearchQuery},
 };
 use memmap2::Mmap;
@@ -122,12 +122,11 @@ impl Default for PokedexSearchResult {
         Self::new(Vec::new())
     }
 }
-// const POKEDEX_DATA = include!()
 #[derive(Clone, Display, EnumString)]
+#[strum(ascii_case_insensitive)]
 pub enum WriteMode {
     Json,
     Jsonl,
-    // Guess,
     Csv,
 }
 
@@ -204,7 +203,7 @@ impl WriteMode {
         Ok(())
     }
 }
-
+pub const MAX_POKEDEX_NUM: u16 = 1025;
 include!(concat!(env!("OUT_DIR"), "/pokedex_data.rs"));
 
 pub struct PokeDexMmap {

@@ -51,7 +51,7 @@ fn str_to_pokedex_num(input: &str) -> Result<u16, String> {
 struct UselessError;
 
 #[cfg(test)]
-mod tests {
+mod pokedex_tests {
     // use crate::{pokedex::Pokedex, pokemon::Pokemon};
 
     impl PokeDexMmap {
@@ -63,7 +63,7 @@ mod tests {
         }
     }
 
-    type TestResult = Result<(), String>;
+    pub type TestResult = Result<(), String>;
 
     use crate::{
         pokedex::{PokeDexMmap, Pokedex, PokedexSearchResult},
@@ -156,10 +156,36 @@ mod tests {
         );
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod parseing_and_output {
+    use crate::{
+        pokedex_tests::TestResult,
+        search::{KeyWord, SearchQuery},
+    };
+
     #[test]
     fn test_keyword_parse_single_value() -> TestResult {
         let keyword = KeyWord::parse(&mut ["1".to_owned()].into_iter())?;
         assert_eq!(KeyWord::query("1")?, keyword);
         Ok(())
+    }
+    #[test]
+    fn test_and_parse() -> TestResult {
+        let test = KeyWord::and(KeyWord::query("1")?, KeyWord::query("2")?);
+        assert_eq!(
+            KeyWord::and(
+                KeyWord::Query(crate::search::SearchQuery::NatDex(1)),
+                KeyWord::Query(crate::search::SearchQuery::NatDex(2))
+            ),
+            test
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_nat_dex_parse() -> TestResult {
+        let test = SearchQuery::parser("539")?;
+        Ok(assert_eq!(SearchQuery::NatDex(539), test))
     }
 }

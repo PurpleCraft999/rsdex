@@ -5,24 +5,18 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
 include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
 include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
+include!(concat!(env!("OUT_DIR"), "/pokemon_genus.rs"));
+
 impl<'de> Nullable<'de> for PokemonAbility {
     fn null() -> Self {
         PokemonAbility::None
     }
 }
 #[derive(
-    Deserialize,
-    PartialEq,
-    Clone,
-    Copy,
-    EnumString,
-    Display,
-    VariantNames,
-    Serialize,
-    Debug,
+    Deserialize, PartialEq, Clone, Copy, EnumString, Display, VariantNames, Serialize, Debug,
 )]
 #[serde(rename_all = "lowercase")]
-#[strum( ascii_case_insensitive)]
+#[strum(ascii_case_insensitive)]
 pub enum PokemonType {
     Normal,
     Fire,
@@ -60,15 +54,7 @@ impl<'n> Nullable<'n> for PokemonType {
     }
 }
 #[derive(
-    Deserialize,
-    Clone,
-    Copy,
-    PartialEq,
-    EnumString,
-    Display,
-    VariantNames,
-    Serialize,
-    Debug,
+    Deserialize, Clone, Copy, PartialEq, EnumString, Display, VariantNames, Serialize, Debug,
 )]
 #[serde(rename_all = "lowercase")]
 #[strum(ascii_case_insensitive)]
@@ -96,10 +82,10 @@ impl FromStr for StatWithOrder {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // println!("parsing {s}");
         let stat = PokemonStat::from_str(s)?;
-        let operation = match s{
-            greater if s.starts_with('g')=>Ordering::Greater,
-            less if s.starts_with('l')=>Ordering::Less,
-            _=>Ordering::Equal
+        let operation = match s {
+            greater if s.starts_with('g') => Ordering::Greater,
+            less if s.starts_with('l') => Ordering::Less,
+            _ => Ordering::Equal,
         };
 
         Ok(Self { stat, operation })
@@ -151,9 +137,7 @@ fn str_to_u8(s: &str) -> Result<u8, ParseIntError> {
         .parse()
     // .expect("expected a number but none was found ")
 }
-#[derive(
-    Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantNames, Debug,
-)]
+#[derive(Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantNames, Debug)]
 #[serde(rename_all = "kebab-case")]
 #[strum(ascii_case_insensitive)]
 ///for whatever reason these names of some of them are different in the data set then else where

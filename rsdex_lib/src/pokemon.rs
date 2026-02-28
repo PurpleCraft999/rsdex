@@ -3,10 +3,11 @@ use std::{collections::HashMap, fmt::Display};
 use serde::{Deserialize, Serialize};
 
 use crate::data_types::{
-    BodyShape, EggGroup, PokedexColor, PokemonAbility, PokemonName, PokemonStat, PokemonType, StatWithOrder, stat_matches_ordering
+    BodyShape, EggGroup, PokedexColor, PokemonAbility, PokemonGenus, PokemonName, PokemonStat,
+    PokemonType, StatWithOrder, stat_matches_ordering,
 };
 
-#[derive(Deserialize, Serialize, PartialEq, Debug,Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct Pokemon {
     name: PokemonName,
     national_dex_number: u16,
@@ -14,7 +15,7 @@ pub struct Pokemon {
     #[serde(deserialize_with = "null_parser")]
     type2: PokemonType,
     color: PokedexColor,
-    genus: String,
+    genus: PokemonGenus,
     ability1: PokemonAbility,
     #[serde(deserialize_with = "null_parser")]
     ability2: PokemonAbility,
@@ -42,7 +43,7 @@ impl Pokemon {
         let levels= [
             (0_u8, ("name", self.name.to_string())),
             (0, ("national dex number", self.national_dex_number.to_string())),
-            (1, ("genus", self.genus.clone())),
+            (1, ("genus", self.genus.to_string())),
             (1, ("primary type", self.type1.to_string())),
             (1, ("secondary type", self.type2.to_string())),
             (2, ("color", self.color.to_string())),
