@@ -1,11 +1,11 @@
 [package]
-name = "rsdex"
+name = "rsdex_bin"
 license = "MIT"
 edition.workspace = true
-version = "0.1.87"
+version = "0.1.88"
 repository.workspace = true
 authors.workspace = true
-readme.workspace = true
+readme = "README.md"
 description = "a little tool that behaves as a pokedex"
 
 
@@ -17,6 +17,6 @@ dist = true
 clap = { version = "4.5.54", features = ["derive"] }
 pulldown-cmark = {version = "0.13.0",default-features = false}
 rsdex_lib = { path = "../rsdex_lib"}
-
-
-
+[[bin]]
+name = "rsdex"
+path = "src/main.rs"

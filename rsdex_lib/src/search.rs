@@ -22,13 +22,6 @@ impl KeyWord {
         }
         Ok(current_keyword)
     }
-    // ///also parses at the end
-    // pub fn preparsing(mut tokens: Vec<String>) -> Result<KeyWord, String> {
-    //     for token in tokens.iter_mut() {
-    //         *token = token.to_lowercase();
-    //     }
-    //     Self::parse(&mut tokens.into_iter())
-    // }
 
     pub fn and(left: Self, right: Self) -> KeyWord {
         Self::And(Box::new(left), Box::new(right))
@@ -99,5 +92,10 @@ impl SearchQuery {
         } else {
             "sorry we couldnt parse the info".into()
         }
+    }
+}
+impl From<SearchQuery> for KeyWord{
+    fn from(value: SearchQuery) -> Self {
+        Self::Query(value)
     }
 }

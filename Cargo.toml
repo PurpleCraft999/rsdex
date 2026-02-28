@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
-members = ["rsdex_main", "rsdex_lib"]
-default-members = ["rsdex_main", "rsdex_lib"]
+members = ["rsdex_bin", "rsdex_lib"]
+default-members = ["rsdex_bin", "rsdex_lib"]
 
 
 [workspace.dependencies]
@@ -16,7 +16,7 @@ lto = "thin"
 
 [workspace.package]
 edition = "2024"
-readme = "README.md"
+version = "0.1.88"
 repository = "https://github.com/PurpleCraft999/rsdex"
 authors = ["PurpleCraft999"]
 

@@ -1,12 +1,12 @@
 [package]
 name = "rsdex_lib"
 edition.workspace = true
-version ="0.1.87"
-description = "A library that allow you too search up pokemon based on data"
+version.workspace = true
+description = "A library that allow you too search up pokemon"
 license = "MIT"
 repository.workspace = true
 authors.workspace = true
-readme.workspace = true
+readme ="rsdex_lib/README.md"
 
 
 [lib]
