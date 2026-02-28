@@ -161,9 +161,16 @@ mod pokedex_tests {
 #[cfg(test)]
 mod parseing_and_output {
     use crate::{
+        data_types::{PokemonName, PokemonType},
         pokedex_tests::TestResult,
         search::{KeyWord, SearchQuery},
     };
+
+    impl SearchQuery {
+        fn parses_to(input: &str, other: Self) -> TestResult {
+            Ok(assert_eq!(Self::parse(input)?, other))
+        }
+    }
 
     #[test]
     fn test_keyword_parse_single_value() -> TestResult {
@@ -176,8 +183,20 @@ mod parseing_and_output {
         let test = KeyWord::and(KeyWord::query("1")?, KeyWord::query("2")?);
         assert_eq!(
             KeyWord::and(
-                KeyWord::Query(crate::search::SearchQuery::NatDex(1)),
-                KeyWord::Query(crate::search::SearchQuery::NatDex(2))
+                KeyWord::Query(SearchQuery::NatDex(1)),
+                KeyWord::Query(SearchQuery::NatDex(2))
+            ),
+            test
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_or_parse() -> TestResult {
+        let test = KeyWord::or(KeyWord::query("fire")?, KeyWord::query("water")?);
+        assert_eq!(
+            KeyWord::or(
+                KeyWord::Query(SearchQuery::Type(PokemonType::Fire)),
+                KeyWord::Query(SearchQuery::Type(PokemonType::Water))
             ),
             test
         );
@@ -185,7 +204,26 @@ mod parseing_and_output {
     }
     #[test]
     fn test_nat_dex_parse() -> TestResult {
-        let test = SearchQuery::parser("539")?;
-        Ok(assert_eq!(SearchQuery::NatDex(539), test))
+        SearchQuery::parses_to("539", SearchQuery::NatDex(539))
+    }
+    #[test]
+    fn test_pokemon_name_parse() -> TestResult {
+        SearchQuery::parses_to("charmander", SearchQuery::Name(PokemonName::Charmander))
+    }
+    #[test]
+    fn test_pokemon_name_random_capitalization_parse() -> TestResult {
+        SearchQuery::parses_to("cHarmAnDeR", SearchQuery::Name(PokemonName::Charmander))
+    }
+    #[test]
+    fn test_pokemon_name_with_dash_parse() -> TestResult {
+        SearchQuery::parses_to("type-null", SearchQuery::Name(PokemonName::TypeNull))
+    }
+    #[test]
+    fn test_range_parse() -> TestResult {
+        SearchQuery::parses_to("1..4", SearchQuery::Range(0..5))
+    }
+    #[test]
+    fn test_type_parse() -> TestResult {
+        SearchQuery::parses_to("ground", SearchQuery::Type(PokemonType::Ground))
     }
 }

@@ -22,19 +22,19 @@ impl KeyWord {
         }
         Ok(current_keyword)
     }
-    ///also parses at the end
-    pub fn preparsing(mut tokens: Vec<String>) -> Result<KeyWord, String> {
-        for token in tokens.iter_mut() {
-            *token = token.to_lowercase();
-        }
-        Self::parse(&mut tokens.into_iter())
-    }
+    // ///also parses at the end
+    // pub fn preparsing(mut tokens: Vec<String>) -> Result<KeyWord, String> {
+    //     for token in tokens.iter_mut() {
+    //         *token = token.to_lowercase();
+    //     }
+    //     Self::parse(&mut tokens.into_iter())
+    // }
 
     pub fn and(left: Self, right: Self) -> KeyWord {
         Self::And(Box::new(left), Box::new(right))
     }
     pub fn query(name: &str) -> Result<KeyWord, String> {
-        Ok(Self::Query(SearchQuery::parser(name)?))
+        Ok(Self::Query(SearchQuery::parse(name)?))
     }
     pub fn or(left: Self, right: Self) -> KeyWord {
         Self::Or(Box::new(left), Box::new(right))
@@ -65,7 +65,7 @@ use crate::{
     data_types::{EggGroup, PokedexColor, PokemonAbility, PokemonName, PokemonType, StatWithOrder},
 };
 impl SearchQuery {
-    pub fn parser(input: &str) -> Result<Self, String> {
+    pub fn parse(input: &str) -> Result<Self, String> {
         // println!("{input}");\
         ok_parser!(input,
             PokemonName::from_str=>Name;
