@@ -13,7 +13,7 @@ Thank you to PokéAPI for providing the data for this project
 ## Installing Binary
 
 ### Rust
-if you have rust installed you can use <code>cargo install rsdex</code>
+if you have rust installed you can use <code>cargo install rsdex_bin</code>
 
 ### Windows
 go to the latest release and copy the power shell script into the command prompt
