@@ -15,7 +15,6 @@ lto = "thin"
 
 
 [workspace.package]
-version = "0.1.87"
 edition = "2024"
 readme = "README.md"
 repository = "https://github.com/PurpleCraft999/rsdex"

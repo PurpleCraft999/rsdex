@@ -63,7 +63,7 @@ mod pokedex_tests {
         }
     }
 
-    pub type TestResult = Result<(), String>;
+    pub(crate) type TestResult = Result<(), String>;
 
     use crate::{
         pokedex::{PokeDexMmap, Pokedex, PokedexSearchResult},
