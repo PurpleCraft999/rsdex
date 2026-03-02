@@ -1,7 +1,8 @@
-use std::{cmp::Ordering, num::ParseIntError, str::FromStr};
+use std::{cmp::Ordering, fmt::Display, num::ParseIntError, str::FromStr};
 
+use crate::MAX_POKEDEX_NUM;
 use crate::pokemon::Nullable;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use strum::{Display, EnumString, VariantNames};
 include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
 include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
@@ -12,9 +13,8 @@ impl<'de> Nullable<'de> for PokemonAbility {
         PokemonAbility::None
     }
 }
-#[derive(
-    Deserialize, PartialEq, Clone, Copy, EnumString, Display, VariantNames, Serialize, Debug,
-)]
+#[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+#[derive(Deserialize, PartialEq, Clone, Copy, EnumString, Display, VariantNames, Debug)]
 #[serde(rename_all = "lowercase")]
 #[strum(ascii_case_insensitive)]
 pub enum PokemonType {
@@ -53,9 +53,8 @@ impl<'n> Nullable<'n> for PokemonType {
         Self::None
     }
 }
-#[derive(
-    Deserialize, Clone, Copy, PartialEq, EnumString, Display, VariantNames, Serialize, Debug,
-)]
+#[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+#[derive(Deserialize, Clone, Copy, PartialEq, EnumString, Display, VariantNames, Debug)]
 #[serde(rename_all = "lowercase")]
 #[strum(ascii_case_insensitive)]
 pub enum PokedexColor {
@@ -137,7 +136,8 @@ fn str_to_u8(s: &str) -> Result<u8, ParseIntError> {
         .parse()
     // .expect("expected a number but none was found ")
 }
-#[derive(Deserialize, Clone, Serialize, Display, PartialEq, EnumString, VariantNames, Debug)]
+#[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+#[derive(Deserialize, Clone, Display, PartialEq, EnumString, VariantNames, Debug)]
 #[serde(rename_all = "kebab-case")]
 #[strum(ascii_case_insensitive)]
 ///for whatever reason these names of some of them are different in the data set then else where
@@ -180,8 +180,8 @@ impl<'d> Nullable<'d> for EggGroup {
         Self::None
     }
 }
-
-#[derive(Serialize, Deserialize, EnumString, Clone, PartialEq, Hash, Debug, Display)]
+#[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+#[derive(Deserialize, EnumString, Clone, PartialEq, Hash, Debug, Display)]
 #[strum(ascii_case_insensitive)]
 #[serde(rename_all = "kebab-case")]
 pub enum BodyShape {
@@ -200,4 +200,55 @@ pub enum BodyShape {
     Heads,
     Ball,
     Blob,
+}
+#[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord, Deserialize)]
+pub struct NationalPokedexNumber(u16);
+impl NationalPokedexNumber {
+    pub fn new(dex_num: u16) -> Result<Self, InvalidDexNum> {
+        if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
+            Ok(Self(dex_num))
+        } else {
+            Err(InvalidDexNum)
+        }
+    }
+    pub fn number(&self) -> u16 {
+        self.0
+    }
+}
+#[derive(Debug)]
+pub struct InvalidDexNum;
+
+impl FromStr for NationalPokedexNumber {
+    type Err = InvalidDexNum;
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        if let Ok(dex_num) = input.parse::<u16>() {
+            Self::new(dex_num)
+        } else {
+            Err(InvalidDexNum)
+        }
+    }
+}
+impl PartialEq<u16> for NationalPokedexNumber {
+    fn eq(&self, other: &u16) -> bool {
+        self.0 == *other
+    }
+}
+impl Display for NationalPokedexNumber {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl PartialEq<&u16> for NationalPokedexNumber {
+    fn eq(&self, other: &&u16) -> bool {
+        self.eq(*other)
+    }
+}
+
+impl TryFrom<u16> for NationalPokedexNumber {
+    type Error = InvalidDexNum;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
 }

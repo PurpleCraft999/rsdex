@@ -1,16 +1,18 @@
 use std::{collections::HashMap, fmt::Display};
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::data_types::{
-    BodyShape, EggGroup, PokedexColor, PokemonAbility, PokemonGenus, PokemonName, PokemonStat,
-    PokemonType, StatWithOrder, stat_matches_ordering,
+    BodyShape, EggGroup, NationalPokedexNumber, PokedexColor, PokemonAbility, PokemonGenus,
+    PokemonName, PokemonStat, PokemonType, StatWithOrder, stat_matches_ordering,
 };
-
-#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
+// #[cfg(feature = "file_writing")]
+// #[derive(serde::Serialize)]
+#[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+#[derive(Deserialize, PartialEq, Debug, Clone)]
 pub struct Pokemon {
     name: PokemonName,
-    national_dex_number: u16,
+    national_dex_number: NationalPokedexNumber,
     type1: PokemonType,
     #[serde(deserialize_with = "null_parser")]
     type2: PokemonType,
@@ -100,7 +102,7 @@ impl Pokemon {
     pub fn get_name(&self) -> &PokemonName {
         &self.name
     }
-    pub fn get_dex_number(&self) -> &u16 {
+    pub fn get_dex_number(&self) -> &NationalPokedexNumber {
         &self.national_dex_number
     }
     pub fn get_primary_type(&self) -> &PokemonType {

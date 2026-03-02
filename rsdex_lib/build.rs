@@ -55,7 +55,7 @@ fn make_pokemon_name_enum() {
     println!("cargo::rerun-if-changed=pokedex.jsonl");
     //the start of enum
     let mut name_enum = String::from(
-        "#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]#[serde(rename_all = \"kebab-case\")]pub enum PokemonName{",
+        "#[cfg_attr(feature = \"file_writing\", derive(serde::Serialize))]#[derive(Clone,serde::Deserialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]#[serde(rename_all = \"kebab-case\")]pub enum PokemonName{",
     );
 
     for line in POKEMON_DATA.lines() {
@@ -85,7 +85,7 @@ fn make_pokemon_abilities_enum() {
     }
     let mut abliities = HashSet::new();
     let mut ability_enum = String::from(
-        "#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]#[serde(rename_all = \"kebab-case\")]pub enum PokemonAbility{",
+        "#[cfg_attr(feature = \"file_writing\", derive(serde::Serialize))]#[derive(Clone,serde::Deserialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]#[serde(rename_all = \"kebab-case\")]pub enum PokemonAbility{",
     );
     for line in POKEMON_DATA.lines() {
         let line = line.expect("failed to read line");
@@ -119,7 +119,7 @@ fn make_pokemon_genus_enum() {
 
     let mut genuses = HashSet::new();
     let mut genus_enum = String::from(
-        "#[derive(Clone,serde::Deserialize,serde::Serialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]pub enum PokemonGenus{",
+        "#[cfg_attr(feature = \"file_writing\", derive(serde::Serialize))]#[derive(Clone,serde::Deserialize,PartialEq,Debug,strum::EnumString,strum::Display,strum::VariantNames)]#[strum(ascii_case_insensitive)]pub enum PokemonGenus{",
     );
     for line in POKEMON_DATA.lines() {
         let line = line.expect("failed to read line");

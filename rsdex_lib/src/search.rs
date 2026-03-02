@@ -44,7 +44,7 @@ macro_rules! ok_parser {
 }
 #[derive(Clone, Display, Debug, PartialEq)]
 pub enum SearchQuery {
-    NatDex(u16),
+    NatDex(NationalPokedexNumber),
     Name(PokemonName),
     Ability(PokemonAbility),
     Type(PokemonType),
@@ -55,14 +55,21 @@ pub enum SearchQuery {
 }
 use crate::{
     compute_similarity,
-    data_types::{EggGroup, PokedexColor, PokemonAbility, PokemonName, PokemonType, StatWithOrder},
+    data_types::{
+        EggGroup, NationalPokedexNumber, PokedexColor, PokemonAbility, PokemonName, PokemonType,
+        StatWithOrder,
+    },
 };
 impl SearchQuery {
+    pub fn nat_dex(num: u16) -> Self {
+        Self::NatDex(num.try_into().unwrap())
+    }
+
     pub fn parse(input: &str) -> Result<Self, String> {
         // println!("{input}");\
         ok_parser!(input,
             PokemonName::from_str=>Name;
-            crate::str_to_pokedex_num=>NatDex;
+            NationalPokedexNumber::from_str=>NatDex;
             PokemonAbility::from_str=>Ability;
             PokemonType::from_str=>Type;
             PokedexColor::from_str=>Color;
@@ -94,7 +101,7 @@ impl SearchQuery {
         }
     }
 }
-impl From<SearchQuery> for KeyWord{
+impl From<SearchQuery> for KeyWord {
     fn from(value: SearchQuery) -> Self {
         Self::Query(value)
     }

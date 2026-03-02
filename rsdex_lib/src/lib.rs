@@ -2,14 +2,16 @@ use std::ops::Range;
 
 use strsim::damerau_levenshtein;
 
-use crate::pokedex::MAX_POKEDEX_NUM;
-
 pub mod data_types;
 pub mod pokedex;
 pub mod pokemon;
 pub mod search;
 
-pub fn compute_similarity(string: &str, options: &[&str]) -> Vec<String> {
+#[cfg(feature = "file_writing")]
+pub use pokedex::WriteMode;
+pub use {pokedex::MAX_POKEDEX_NUM, pokemon::Pokemon};
+
+fn compute_similarity(string: &str, options: &[&str]) -> Vec<String> {
     options
         .iter()
         .map(|s| {
@@ -34,19 +36,6 @@ fn str_to_range(input: &str) -> Result<Range<u16>, UselessError> {
     }
     Ok(min - 1..max + 1)
 }
-fn str_to_pokedex_num(input: &str) -> Result<u16, String> {
-    if let Ok(dex_num) = input.parse::<u16>() {
-        if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
-            Ok(dex_num)
-        } else {
-            Err(format!(
-                "the search value must be between 1-{MAX_POKEDEX_NUM}"
-            ))
-        }
-    } else {
-        Err("could not parse u16".into())
-    }
-}
 
 struct UselessError;
 
@@ -59,7 +48,8 @@ mod pokedex_tests {
             self.find_by_name(&name.try_into().unwrap()).unwrap()
         }
         fn id(&self, id: u16) -> Pokemon {
-            self.find_by_natinal_dex_number(&id).unwrap()
+            self.find_by_natinal_dex_number(&id.try_into().unwrap())
+                .unwrap()
         }
     }
 
@@ -78,7 +68,7 @@ mod pokedex_tests {
     impl PokemonD0 {
         fn matches(&self, find: &Pokemon) {
             // assert_eq!(&self.name, find.get_name());
-            assert_eq!(&self.nat_dex_num, find.get_dex_number());
+            assert_eq!(find.get_dex_number(), &self.nat_dex_num);
         }
     }
 
@@ -90,7 +80,11 @@ mod pokedex_tests {
         };
         let dex = PokeDexMmap::new().unwrap();
 
-        find_pokemon.matches(dex.search(&SearchQuery::NatDex(1)).get_if_single().unwrap());
+        find_pokemon.matches(
+            dex.search(&SearchQuery::nat_dex(1))
+                .get_if_single()
+                .unwrap(),
+        );
         find_pokemon.matches(
             dex.search(&SearchQuery::Name("bulbasaur".try_into().unwrap()))
                 .get_if_single()
@@ -159,7 +153,7 @@ mod pokedex_tests {
 }
 
 #[cfg(test)]
-mod parseing_and_output {
+mod parsing {
     use crate::{
         data_types::{PokemonName, PokemonType},
         pokedex_tests::TestResult,
@@ -183,8 +177,8 @@ mod parseing_and_output {
         let test = KeyWord::and(KeyWord::query("1")?, KeyWord::query("2")?);
         assert_eq!(
             KeyWord::and(
-                KeyWord::Query(SearchQuery::NatDex(1)),
-                KeyWord::Query(SearchQuery::NatDex(2))
+                KeyWord::Query(SearchQuery::nat_dex(1)),
+                KeyWord::Query(SearchQuery::nat_dex(1))
             ),
             test
         );
@@ -204,7 +198,7 @@ mod parseing_and_output {
     }
     #[test]
     fn test_nat_dex_parse() -> TestResult {
-        SearchQuery::parses_to("539", SearchQuery::NatDex(539))
+        SearchQuery::parses_to("539", SearchQuery::nat_dex(1))
     }
     #[test]
     fn test_pokemon_name_parse() -> TestResult {

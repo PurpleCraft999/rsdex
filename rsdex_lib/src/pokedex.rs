@@ -1,19 +1,28 @@
 use crate::{
-    data_types::{EggGroup, PokedexColor, PokemonAbility, PokemonName, PokemonType, StatWithOrder},
+    data_types::{
+        EggGroup, NationalPokedexNumber, PokedexColor, PokemonAbility, PokemonName, PokemonType,
+        StatWithOrder,
+    },
     pokemon::Pokemon,
     search::{KeyWord, SearchQuery},
 };
 use memmap2::Mmap;
 // use rayon::iter::{ParallelBridge, ParallelIterator};
+#[cfg(feature = "file_writing")]
 use strum::{Display, EnumString};
 // use serde::Deserialize;
 use std::{
     // fs::File,
     collections::HashSet,
+
+    io::BufRead,
+    ops::Range,
+};
+#[cfg(feature = "file_writing")]
+use std::{
     ffi::OsStr,
     fs::File,
-    io::{self, BufRead, BufWriter, Write},
-    ops::Range,
+    io::{self, BufWriter, Write},
     path::PathBuf,
     str::FromStr,
 };
@@ -68,6 +77,7 @@ impl PokedexSearchResult {
             None
         }
     }
+    #[cfg(feature = "file_writing")]
     pub fn write_data_to_file(
         &self,
         file_path: &PathBuf,
@@ -122,6 +132,7 @@ impl Default for PokedexSearchResult {
         Self::new(Vec::new())
     }
 }
+#[cfg(feature = "file_writing")]
 #[derive(Clone, Display, EnumString)]
 #[strum(ascii_case_insensitive)]
 pub enum WriteMode {
@@ -129,7 +140,7 @@ pub enum WriteMode {
     Jsonl,
     Csv,
 }
-
+#[cfg(feature = "file_writing")]
 impl WriteMode {
     fn write<W: Write>(
         &self,
@@ -258,7 +269,7 @@ pub trait Pokedex {
         })
     }
 
-    fn find_by_natinal_dex_number(&self, dex_num: &u16) -> SingleSearchReturn {
+    fn find_by_natinal_dex_number(&self, dex_num: &NationalPokedexNumber) -> SingleSearchReturn {
         self.find_single_pokemon(|pokemon| pokemon.get_dex_number() == dex_num)
     }
     fn find_by_name(&self, name: &PokemonName) -> SingleSearchReturn {
@@ -276,7 +287,7 @@ pub trait Pokedex {
         })
     }
     fn find_within_range_nat_dex(&self, range: &Range<u16>) -> MultiSearchReturn {
-        self.find_many_pokemon(|pokemon| range.contains(pokemon.get_dex_number()))
+        self.find_many_pokemon(|pokemon| range.contains(&pokemon.get_dex_number().number()))
     }
     fn find_by_ability(&self, ability: &PokemonAbility) -> MultiSearchReturn {
         self.find_many_pokemon(|pokemon| {
