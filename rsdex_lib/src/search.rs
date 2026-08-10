@@ -33,13 +33,17 @@ impl KeyWord {
         Self::Or(Box::new(left), Box::new(right))
     }
 }
-macro_rules! ok_parser {
+macro_rules! query_parser {
     ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
+        match $input{
         $(
-            if let Ok(val) = $parser($input){
-                return Ok(Self::$query(val));
-            }
+            _ if let Ok(val) = $parser($input)=>Ok(Self::$query(val)),
+            // if let Ok(val) = $parser($input){
+            //     return Ok(Self::$query(val));
+            // }
         )*
+        _=>Err(Self::parsing_error($input))
+        }
     };
 }
 #[derive(Clone, Display, Debug, PartialEq)]
@@ -66,8 +70,7 @@ impl SearchQuery {
     }
 
     pub fn parse(input: &str) -> Result<Self, String> {
-        // println!("{input}");\
-        ok_parser!(input,
+        query_parser!(input,
             PokemonName::from_str=>Name;
             NationalPokedexNumber::from_str=>NatDex;
             PokemonAbility::from_str=>Ability;
@@ -76,16 +79,14 @@ impl SearchQuery {
             StatWithOrder::from_str=>Stat;
             EggGroup::from_str=>EggGroup;
             crate::str_to_range=>Range;
-        );
-
-        Err(Self::parsing_error(input))
+        )
     }
     fn parsing_error(input: &str) -> String {
         let mut err_vec = Vec::new();
-        err_vec.append(&mut compute_similarity(input, PokemonName::VARIANTS));
+        // err_vec.append(&mut compute_similarity(input, PokemonName::VARIANTS));
         err_vec.append(&mut compute_similarity(input, PokedexColor::VARIANTS));
         err_vec.append(&mut compute_similarity(input, PokemonType::VARIANTS));
-        err_vec.append(&mut compute_similarity(input, PokemonAbility::VARIANTS));
+        // err_vec.append(&mut compute_similarity(input, PokemonAbility::VARIANTS));
         err_vec.append(&mut compute_similarity(input, EggGroup::VARIANTS));
         let mut did_you_mean_str = String::with_capacity(err_vec.len());
         if !err_vec.is_empty() {

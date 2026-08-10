@@ -166,6 +166,16 @@ mod parsing {
         }
     }
 
+    impl PokemonName {
+        // const Charmander:Self = Self("Charmander".);
+        fn charmander() -> Self {
+            Self("Charmander".into())
+        }
+        fn type_null() -> Self {
+            Self("type-null".into())
+        }
+    }
+
     #[test]
     fn test_keyword_parse_single_value() -> TestResult {
         let keyword = KeyWord::parse(&mut ["1".to_owned()].into_iter())?;
@@ -202,15 +212,15 @@ mod parsing {
     }
     #[test]
     fn test_pokemon_name_parse() -> TestResult {
-        SearchQuery::parses_to("charmander", SearchQuery::Name(PokemonName::Charmander))
+        SearchQuery::parses_to("charmander", SearchQuery::Name(PokemonName::charmander()))
     }
     #[test]
     fn test_pokemon_name_random_capitalization_parse() -> TestResult {
-        SearchQuery::parses_to("cHarmAnDeR", SearchQuery::Name(PokemonName::Charmander))
+        SearchQuery::parses_to("cHarmAnDeR", SearchQuery::Name(PokemonName::charmander()))
     }
     #[test]
     fn test_pokemon_name_with_dash_parse() -> TestResult {
-        SearchQuery::parses_to("type-null", SearchQuery::Name(PokemonName::TypeNull))
+        SearchQuery::parses_to("type-null", SearchQuery::Name(PokemonName::type_null()))
     }
     #[test]
     fn test_range_parse() -> TestResult {

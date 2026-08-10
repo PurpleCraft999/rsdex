@@ -4,13 +4,48 @@ use crate::MAX_POKEDEX_NUM;
 use crate::pokemon::Nullable;
 use serde::Deserialize;
 use strum::{Display, EnumString, VariantNames};
-include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
-include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
-include!(concat!(env!("OUT_DIR"), "/pokemon_genus.rs"));
+// include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
+// include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
+// include!(concat!(env!("OUT_DIR"), "/pokemon_genus.rs"));
+
+macro_rules! string_new_type {
+    ($name:ident) => {
+        #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+        #[derive(Clone, serde::Deserialize, PartialEq, Debug)]
+        pub struct $name(pub(crate) Box<str>);
+        impl FromStr for $name {
+            type Err = ();
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                Ok(Self(s.into()))
+            }
+        }
+        impl TryFrom<&str> for $name {
+            type Error = <Self as FromStr>::Err;
+            fn try_from(s: &str) -> Result<Self, Self::Error> {
+                Self::from_str(s)
+            }
+        }
+        impl Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.0)
+            }
+        }
+    };
+}
+
+string_new_type!(PokemonAbility);
+
+string_new_type!(PokemonName);
+string_new_type!(PokemonGenus);
+
+// #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
+// #[derive(Clone,serde::Deserialize,PartialEq,Debug)]
+// pub struct PokemonName(Box<String>);
 
 impl<'de> Nullable<'de> for PokemonAbility {
     fn null() -> Self {
-        PokemonAbility::None
+        PokemonAbility("None".into())
     }
 }
 #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
@@ -82,8 +117,8 @@ impl FromStr for StatWithOrder {
         // println!("parsing {s}");
         let stat = PokemonStat::from_str(s)?;
         let operation = match s {
-            greater if s.starts_with('g') => Ordering::Greater,
-            less if s.starts_with('l') => Ordering::Less,
+            _greater if s.starts_with('g') => Ordering::Greater,
+            _less if s.starts_with('l') => Ordering::Less,
             _ => Ordering::Equal,
         };
 
@@ -119,12 +154,12 @@ impl FromStr for PokemonStat {
         let stat_value = str_to_u8(s).map_err(|_| "could not parse stat".to_owned())?;
 
         match s {
-            hp if s.ends_with("hp") => Ok(Self::Hp(stat_value)),
-            attack if s.ends_with('a') => Ok(Self::Attack(stat_value)),
-            defence if s.ends_with('d') => Ok(Self::Defence(stat_value)),
-            special_attack if s.ends_with("sa") => Ok(Self::SpecialAttack(stat_value)),
-            special_defence if s.ends_with("sd") => Ok(Self::SpecialDefence(stat_value)),
-            speed if s.ends_with('s') => Ok(Self::Speed(stat_value)),
+            _hp if s.ends_with("hp") => Ok(Self::Hp(stat_value)),
+            _attack if s.ends_with('a') => Ok(Self::Attack(stat_value)),
+            _defence if s.ends_with('d') => Ok(Self::Defence(stat_value)),
+            _special_attack if s.ends_with("sa") => Ok(Self::SpecialAttack(stat_value)),
+            _special_defence if s.ends_with("sd") => Ok(Self::SpecialDefence(stat_value)),
+            _speed if s.ends_with('s') => Ok(Self::Speed(stat_value)),
             _ => Err("could not parse stat from str".into()),
         }
     }

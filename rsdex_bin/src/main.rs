@@ -3,11 +3,13 @@ use std::path::PathBuf;
 use clap::{Parser, value_parser};
 use pulldown_cmark::{Event, HeadingLevel, Tag, TagEnd};
 use rsdex_lib::{
+    data_types::PokemonName,
     pokedex::{PokeDexMmap, Pokedex, WriteMode},
     search::KeyWord,
 };
 
 fn main() {
+    println!("{}", size_of::<PokemonName>());
     let args = RsdexArgs::parse();
     let detail_level = args.detailed;
     let pokedex = match PokeDexMmap::new() {
