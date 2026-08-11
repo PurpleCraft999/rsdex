@@ -17,7 +17,7 @@ impl KeyWord {
             let the_type = SearchQueryParsing::from_str(current.0).unwrap();
             let current_search = current.1;
             KeyWord::query(the_type, current_search)?
-        } else if let Some(num) =  current.strip_prefix('#') {
+        } else if let Some(num) = current.strip_prefix('#') {
             KeyWord::query(SearchQueryParsing::NatDex, num)?
         } else {
             return Err(format!("could not parse {}", current));

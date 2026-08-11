@@ -8,23 +8,15 @@ use crate::{
 };
 use memmap2::Mmap;
 // use rayon::iter::{ParallelBridge, ParallelIterator};
-#[cfg(feature = "file_writing")]
-use strum::{Display, EnumString};
 // use serde::Deserialize;
+#[cfg(feature = "file_writing")]
+use std::io::{self, Write};
 use std::{
     // fs::File,
     collections::HashSet,
 
     io::BufRead,
     ops::Range,
-};
-#[cfg(feature = "file_writing")]
-use std::{
-    ffi::OsStr,
-    fs::File,
-    io::{self, BufWriter, Write},
-    path::PathBuf,
-    str::FromStr,
 };
 
 pub type SingleSearchReturn = Option<Pokemon>;
@@ -78,40 +70,39 @@ impl PokedexSearchResult {
         }
     }
     #[cfg(feature = "file_writing")]
-    pub fn write_data_to_file(
+    pub fn write_data<W: Write>(
         &self,
-        file_path: &PathBuf,
+        writer: &mut W,
         detail_level: u8,
-        mut write_mode: Option<WriteMode>,
+        write_mode: crate::WriteType,
         pretty: bool,
     ) -> io::Result<()> {
-        println!("writing to {}", file_path.display());
-        // let fp = Path::new(&fp);
-        let file = File::create(file_path)
-            .unwrap_or_else(|e| panic!("sorry rsdex could not create your file because {e}"));
+        // println!("writing to {}", file_path.display());
+        // // let fp = Path::new(&fp);
+        // let file = File::create(file_path)
+        //     .unwrap_or_else(|e| panic!("sorry rsdex could not create your file because {e}"));
 
-        let mut writer = BufWriter::new(file);
+        // let mut writer = BufWriter::new(file);
 
         //tries to determine write mode if not set
-        if write_mode.is_none() {
-            write_mode = match WriteMode::from_str(
-                file_path
-                    .extension()
-                    .unwrap_or_else(|| OsStr::new("extension missing"))
-                    .to_str()
-                    .expect("sorry the file path isn't valid unicode"),
-                // true,
-            ) {
-                Ok(w) => Some(w),
-                Err(_) => {
-                    return Err(std::io::Error::other("could not guess writemode "));
-                }
-            }
-        }
+        // if write_mode.is_none() {
+        //     write_mode = match WriteMode::from_str(
+        //         file_path
+        //             .extension()
+        //             .unwrap_or_else(|| OsStr::new("extension missing"))
+        //             .to_str()
+        //             .expect("sorry the file path isn't valid unicode"),
+        //     ) {
+        //         Ok(w) => Some(w),
+        //         Err(_) => {
+        //             return Err(std::io::Error::other("could not guess writemode"));
+        //         }
+        //     }
+        // }
 
         write_mode
-            .expect("invailed write_mode state: still None")
-            .write(&mut writer, &self.vec, detail_level, pretty)
+            // .expect("invailed write_mode state: still None")
+            .write(writer, &self.vec, detail_level, pretty)
     }
     pub fn to_vec(self) -> Vec<Pokemon> {
         self.vec
@@ -135,88 +126,7 @@ impl Default for PokedexSearchResult {
         Self::new(Vec::new())
     }
 }
-#[cfg(feature = "file_writing")]
-#[derive(Clone, Display, EnumString)]
-#[strum(ascii_case_insensitive)]
-pub enum WriteMode {
-    Json,
-    Jsonl,
-    Csv,
-}
-#[cfg(feature = "file_writing")]
-impl WriteMode {
-    fn write<W: Write>(
-        &self,
-        writer: &mut W,
-        data: &[Pokemon],
-        detail_level: u8,
-        pretty: bool,
-    ) -> io::Result<()> {
-        if data.is_empty() {
-            return std::io::Result::Err(io::Error::other("data cant be empty"));
-        }
 
-        match self {
-            WriteMode::Json => {
-                //makes it a json array
-                writer.write_all("[".as_bytes())?;
-                let mut json_string = String::new();
-                for pkmn in data {
-                    let pkmap = &pkmn.get_as_map(detail_level);
-                    let pokemon_string = if pretty {
-                        serde_json::to_string_pretty(pkmap)?
-                    } else {
-                        serde_json::to_string(pkmap)?
-                    };
-                    json_string += (pokemon_string + ",").as_str();
-                }
-                //removes the trailing comma
-                json_string.pop();
-                writer.write_all(json_string.as_bytes())?;
-                writer.write_all("]".as_bytes())?;
-            }
-            //def no copied from json
-            WriteMode::Jsonl => {
-                let mut jsonl_string = String::new();
-                for pkmn in data {
-                    let pkmap = &pkmn.get_as_map(detail_level);
-                    let pokemon_string = if pretty {
-                        serde_json::to_string_pretty(pkmap)?
-                    } else {
-                        serde_json::to_string(pkmap)?
-                    };
-                    jsonl_string += (pokemon_string + "\n").as_str();
-                }
-                // no newline at end
-                jsonl_string.pop();
-                writer.write_all(jsonl_string.as_bytes())?;
-            }
-            WriteMode::Csv => {
-                let mut csv_string = String::new();
-
-                for (column_name, _) in &data[0].get_as_vec(detail_level) {
-                    csv_string.push_str(column_name);
-                    csv_string.push(',');
-                }
-                csv_string.push('\n');
-
-                for pkmn in data {
-                    let vec = pkmn.get_as_vec(detail_level);
-
-                    for (_, column_value) in vec {
-                        csv_string.push_str(&column_value);
-                        csv_string.push(',');
-                    }
-                    csv_string.push('\n');
-                }
-                csv_string = csv_string.replace(",\n", "\n");
-                writer.write_all(csv_string.as_bytes())?;
-            }
-        }
-
-        Ok(())
-    }
-}
 pub const MAX_POKEDEX_NUM: u16 = 1025;
 include!(concat!(env!("OUT_DIR"), "/pokedex_data.rs"));
 
@@ -232,7 +142,7 @@ impl PokeDexMmap {
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }
-    pub(crate) fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon> {
+    fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon> {
         self.mmap
             .lines()
             .map_while(|item| item.ok())

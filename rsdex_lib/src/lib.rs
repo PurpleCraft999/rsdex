@@ -6,9 +6,11 @@ pub mod data_types;
 pub mod pokedex;
 pub mod pokemon;
 pub mod search;
+#[cfg(feature = "file_writing")]
+pub mod writing;
 
 #[cfg(feature = "file_writing")]
-pub use pokedex::WriteMode;
+pub use writing::WriteType;
 pub use {pokedex::MAX_POKEDEX_NUM, pokemon::Pokemon};
 
 fn compute_similarity(string: &str, options: &[&str]) -> Vec<String> {
@@ -94,7 +96,6 @@ mod pokedex_tests {
     #[test]
     fn multi_search_dual_type() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
-        println!("{:?}", dex.mmap_to_pokemap().collect::<Vec<_>>());
         let result = dex.search_many(KeyWord::and(
             KeyWord::query(SearchQueryParsing::Type, "bug")?,
             KeyWord::query(SearchQueryParsing::Type, "flying")?,
@@ -253,6 +254,36 @@ mod parsing {
             SearchQueryParsing::Type,
             "ground",
             SearchQuery::Type(PokemonType::Ground),
+        )
+    }
+}
+#[cfg(all(feature = "file_writing", test))]
+mod writing_tests {
+
+    use crate::{
+        WriteType,
+        data_types::NationalPokedexNumber,
+        pokedex::{PokeDexMmap, Pokedex, PokedexSearchResult},
+        search::SearchQuery,
+    };
+    impl PokedexSearchResult {
+        #[cfg(test)]
+        fn test_write(&self) -> String {
+            let mut writer = Vec::new();
+            self.write_data(&mut writer, 5, WriteType::Txt, false)
+                .unwrap();
+            String::from_utf8(writer).unwrap()
+        }
+    }
+    #[test]
+    fn test_writting() {
+        let s = PokeDexMmap::new().unwrap();
+        assert_eq!(
+            s.search(&SearchQuery::NatDex(
+                NationalPokedexNumber::new(50).unwrap()
+            ))
+            .test_write(),
+            "name:Diglett\nnational dex number:50\ngenus:Mole pokémon\nprimary type:Ground\nsecondary type:None\ncolor:Brown\negg group 1:Field\negg group 2:None\nability 1:SandVeil\nability 2:ArenaTrap\nhidden ability:SandForce\nshape:Blob\nhp:10\nattack:55\ndefence:25\nspecial attack:35\nspecial defence:45\nspeed:95\n\n"
         )
     }
 }

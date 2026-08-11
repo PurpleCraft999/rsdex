@@ -1,10 +1,11 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr as _};
 
 use clap::{Parser, value_parser};
 use pulldown_cmark::{Event, HeadingLevel, Tag, TagEnd};
 use rsdex_lib::{
-    pokedex::{PokeDexMmap, Pokedex, WriteMode},
+    pokedex::{PokeDexMmap, Pokedex},
     search::KeyWord,
+    writing::WriteType
 };
 
 fn main() {
@@ -30,8 +31,33 @@ fn main() {
     let mut search_result = pokedex.search_many(search_queries);
 
     if let Some(fp) = args.file_path {
+        // let fp = Path::new(&fp);
+        let file = std::fs::File::create(&fp)
+            .unwrap_or_else(|e| panic!("sorry rsdex could not create your file because {e}"));
+
+        let mut writer = std::io::BufWriter::new(file);
+        let mut write_mode = args.write_mode;
+        if write_mode.is_none() {
+            write_mode = match WriteType::from_str(
+                fp.extension()
+                    .unwrap_or_else(|| std::ffi::OsStr::new("extension missing"))
+                    .to_str()
+                    .expect("sorry the file path isn't valid unicode"),
+            ) {
+                Ok(w) => Some(w),
+                Err(_) => {
+                    println!("{:?}", std::io::Error::other("could not guess writemode"));
+                    return;
+                }
+            }
+        }
         search_result
-            .write_data_to_file(&fp, detail_level, args.write_mode, args.pretty)
+            .write_data(
+                &mut writer,
+                detail_level,
+                write_mode.expect("invailed write_mode state: still None"),
+                args.pretty,
+            )
             .expect("something went wrong while saving your file");
         println!("writing successfull")
     } else {
@@ -46,10 +72,10 @@ struct RsdexArgs {
     search_queries: Vec<String>,
     #[arg(long, short,value_parser = value_parser!(u8).range(0..=5),default_value_t=0)]
     detailed: u8,
-    #[arg(long, alias("fp"))]
+    #[arg(long, aliases(["fp","filepath"]),short('p'))]
     file_path: Option<PathBuf>,
     #[arg(long, requires = "file_path")]
-    write_mode: Option<WriteMode>,
+    write_mode: Option<WriteType>,
     #[arg(long, requires = "file_path")]
     pretty: bool,
     #[arg(long, short)]

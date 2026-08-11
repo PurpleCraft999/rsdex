@@ -75,12 +75,7 @@ impl Pokemon {
     }
 
     pub fn get_as_map(&self, detail_level: u8) -> HashMap<&str, String> {
-        let vec = self.get_as_vec(detail_level);
-        let mut map = HashMap::with_capacity(vec.len());
-        for (k, v) in vec {
-            map.insert(k, v);
-        }
-        map
+        HashMap::from_iter(self.get_as_vec(detail_level))
     }
 
     pub fn get_display(&self, detail_level: u8) -> String {

@@ -1,14 +1,8 @@
-use std::{
-    cmp::Ordering,
-    fmt::Display,
-    hash::{Hash},
-    num::ParseIntError,
-    str::FromStr,
-};
+use std::{cmp::Ordering, fmt::Display, hash::Hash, num::ParseIntError, str::FromStr};
 
 use crate::MAX_POKEDEX_NUM;
 use crate::pokemon::Nullable;
-use serde::{Deserialize};
+use serde::Deserialize;
 use strum::{Display, EnumString, VariantNames};
 mod string_id {
     use std::{
@@ -21,10 +15,7 @@ mod string_id {
     static ID_MAP: LazyLock<Mutex<HashMap<u64, String>>> =
         LazyLock::new(|| Mutex::new(HashMap::new()));
     fn insert(id: u64, value: String) {
-        ID_MAP
-            .lock()
-            .map(|mut m| m.insert(id, value))
-            .unwrap();
+        ID_MAP.lock().map(|mut m| m.insert(id, value)).unwrap();
     }
     fn get(id: &u64) -> Option<String> {
         ID_MAP.lock().map(|m| m.get(id).cloned()).unwrap()
