@@ -72,7 +72,6 @@ fn make_pokemon_name_enum() {
         name_enum.push_str(&name);
         name_enum.push(',');
     }
-    // name_enum.push_str("Other(Box<String>)");
     name_enum.push('}');
     std::fs::write(out_dir("pokemon_name"), name_enum).unwrap()
 }

@@ -8,16 +8,38 @@ use strum::{Display, EnumString, VariantNames};
 // include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
 // include!(concat!(env!("OUT_DIR"), "/pokemon_genus.rs"));
 
+fn make_camel_case_from_kebab(mut kebab: String) -> String {
+    //replace the  `-`'s
+    while let Some(dash_pos) = kebab.find("-") {
+        kebab.remove(dash_pos);
+        let lower = kebab.remove(dash_pos);
+        kebab.insert(dash_pos, lower.to_ascii_uppercase());
+    }
+    capitalize_first_letter(kebab)
+}
+
+fn capitalize_first_letter(mut name: String) -> String {
+    let first_letter = name.remove(0);
+    name.insert(0, first_letter.to_ascii_uppercase());
+    name
+}
+
 macro_rules! string_new_type {
     ($name:ident) => {
         #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
         #[derive(Clone, serde::Deserialize, PartialEq, Debug)]
-        pub struct $name(pub(crate) Box<str>);
+        // #[serde(rename_all = "kebab-case")]
+        pub struct $name(Box<str>);
+        impl $name {
+            pub fn new(s: &str) -> Self {
+                Self(make_camel_case_from_kebab(s.to_lowercase()).into())
+            }
+        }
         impl FromStr for $name {
             type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                Ok(Self(s.into()))
+                Ok(Self::new(s))
             }
         }
         impl TryFrom<&str> for $name {
@@ -26,9 +48,15 @@ macro_rules! string_new_type {
                 Self::from_str(s)
             }
         }
+        impl TryFrom<String> for $name {
+            type Error = <Self as FromStr>::Err;
+            fn try_from(s: String) -> Result<Self, Self::Error> {
+                Self::from_str(&s)
+            }
+        }
         impl Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.0)
+                write!(f, "{}", &*self.0)
             }
         }
     };
@@ -39,13 +67,9 @@ string_new_type!(PokemonAbility);
 string_new_type!(PokemonName);
 string_new_type!(PokemonGenus);
 
-// #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
-// #[derive(Clone,serde::Deserialize,PartialEq,Debug)]
-// pub struct PokemonName(Box<String>);
-
 impl<'de> Nullable<'de> for PokemonAbility {
     fn null() -> Self {
-        PokemonAbility("None".into())
+        PokemonAbility::new("None")
     }
 }
 #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]

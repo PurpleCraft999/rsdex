@@ -11,7 +11,18 @@ pub enum KeyWord {
 }
 impl KeyWord {
     pub fn parse(tokens: &mut impl Iterator<Item = String>) -> Result<KeyWord, String> {
-        let mut current_keyword = KeyWord::query(&tokens.next().unwrap())?;
+        let current = tokens.next().unwrap();
+
+        let mut current_keyword = if let Some(current) = current.split_once(['=', ':']) {
+            let the_type = SearchQueryParsing::from_str(current.0).unwrap();
+            let current_search = current.1;
+            KeyWord::query(the_type, current_search)?
+        } else if current.starts_with('#') {
+            KeyWord::query(SearchQueryParsing::Type, &current[1..])?
+        } else {
+            return Err(format!("could not parse {}", current));
+        };
+
         //to easily use tokens inside the loop
         while let Some(current_token) = tokens.next() {
             current_keyword = match current_token.as_str() {
@@ -26,27 +37,34 @@ impl KeyWord {
     pub fn and(left: Self, right: Self) -> KeyWord {
         Self::And(Box::new(left), Box::new(right))
     }
-    pub fn query(name: &str) -> Result<KeyWord, String> {
-        Ok(Self::Query(SearchQuery::parse(name)?))
+    pub fn query(what_type: SearchQueryParsing, name: &str) -> Result<KeyWord, String> {
+        Ok(Self::Query(SearchQuery::parse(what_type, name)?))
     }
     pub fn or(left: Self, right: Self) -> KeyWord {
         Self::Or(Box::new(left), Box::new(right))
     }
 }
 macro_rules! query_parser {
-    ($input:expr, $($parser:path => $query:ident);* $(;)?) => {
-        match $input{
+    ($the_type:expr,$input:expr, $($parser:path => $query:ident);* $(;)?) => {
+        // match $input{
         $(
-            _ if let Ok(val) = $parser($input)=>Ok(Self::$query(val)),
-            // if let Ok(val) = $parser($input){
-            //     return Ok(Self::$query(val));
-            // }
+            // _ if let Ok(val) = $parser($input) => Ok(Self::$query(val)),
+            if let Ok(val) = $parser($input){
+                let s = Self::$query(val);
+
+                if SearchQueryParsing::from(&s) == $the_type{
+                    return Ok(s);
+                }
+
+            }
         )*
-        _=>Err(Self::parsing_error($input))
-        }
+        // _=>Err(Self::parsing_error($input))
+        // }
     };
 }
-#[derive(Clone, Display, Debug, PartialEq)]
+#[derive(Clone, Display, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(name(SearchQueryParsing))]
+// #[strum_discriminants(derive(strum::EnumString))]
 pub enum SearchQuery {
     NatDex(NationalPokedexNumber),
     Name(PokemonName),
@@ -69,8 +87,8 @@ impl SearchQuery {
         Self::NatDex(num.try_into().unwrap())
     }
 
-    pub fn parse(input: &str) -> Result<Self, String> {
-        query_parser!(input,
+    pub fn parse(what_type: SearchQueryParsing, input: &str) -> Result<Self, String> {
+        query_parser!(what_type,input,
             PokemonName::from_str=>Name;
             NationalPokedexNumber::from_str=>NatDex;
             PokemonAbility::from_str=>Ability;
@@ -79,7 +97,8 @@ impl SearchQuery {
             StatWithOrder::from_str=>Stat;
             EggGroup::from_str=>EggGroup;
             crate::str_to_range=>Range;
-        )
+        );
+        Err(Self::parsing_error(input))
     }
     fn parsing_error(input: &str) -> String {
         let mut err_vec = Vec::new();
@@ -107,3 +126,23 @@ impl From<SearchQuery> for KeyWord {
         Self::Query(value)
     }
 }
+impl FromStr for SearchQueryParsing {
+    type Err = UnknownSearchQueryKey;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use SearchQueryParsing::*;
+        match s {
+            "num" | "number" | "nat_dex" | "#" | "dex" => Ok(NatDex),
+            "name" => Ok(Name),
+            "ability" | "a" => Ok(Ability),
+            "type" | "t" => Ok(Type),
+            "color" | "c" => Ok(Color),
+            "stat" | "s" => Ok(Stat),
+            "egg" | "egg_group" | "egg-group" | "egg group" => Ok(EggGroup),
+            "range" | "in range" | "in_range" | "in-range" => Ok(Range),
+            _ => Err(UnknownSearchQueryKey),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct UnknownSearchQueryKey;

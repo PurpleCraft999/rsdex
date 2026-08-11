@@ -113,6 +113,9 @@ impl PokedexSearchResult {
             .expect("invailed write_mode state: still None")
             .write(&mut writer, &self.vec, detail_level, pretty)
     }
+    pub fn to_vec(self) -> Vec<Pokemon> {
+        self.vec
+    }
 }
 impl From<SingleSearchReturn> for PokedexSearchResult {
     fn from(value: SingleSearchReturn) -> Self {
@@ -229,7 +232,7 @@ impl PokeDexMmap {
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }
-    fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon> {
+    pub(crate) fn mmap_to_pokemap(&self) -> impl Iterator<Item = Pokemon> {
         self.mmap
             .lines()
             .map_while(|item| item.ok())
