@@ -1,38 +1,93 @@
-use std::{cmp::Ordering, fmt::Display, num::ParseIntError, str::FromStr};
+use std::{
+    cmp::Ordering,
+    fmt::Display,
+    hash::{Hash},
+    num::ParseIntError,
+    str::FromStr,
+};
 
 use crate::MAX_POKEDEX_NUM;
 use crate::pokemon::Nullable;
-use serde::Deserialize;
+use serde::{Deserialize};
 use strum::{Display, EnumString, VariantNames};
-// include!(concat!(env!("OUT_DIR"), "/pokemon_name.rs"));
-// include!(concat!(env!("OUT_DIR"), "/pokemon_ability.rs"));
-// include!(concat!(env!("OUT_DIR"), "/pokemon_genus.rs"));
+mod string_id {
+    use std::{
+        collections::HashMap,
+        hash::{DefaultHasher, Hash, Hasher},
+        sync::{LazyLock, Mutex},
+    };
 
-fn make_camel_case_from_kebab(mut kebab: String) -> String {
-    //replace the  `-`'s
-    while let Some(dash_pos) = kebab.find("-") {
-        kebab.remove(dash_pos);
-        let lower = kebab.remove(dash_pos);
-        kebab.insert(dash_pos, lower.to_ascii_uppercase());
+    use serde::{Deserialize, Serialize};
+    static ID_MAP: LazyLock<Mutex<HashMap<u64, String>>> =
+        LazyLock::new(|| Mutex::new(HashMap::new()));
+    fn insert(id: u64, value: String) {
+        ID_MAP
+            .lock()
+            .map(|mut m| m.insert(id, value))
+            .unwrap();
     }
-    capitalize_first_letter(kebab)
+    fn get(id: &u64) -> Option<String> {
+        ID_MAP.lock().map(|m| m.get(id).cloned()).unwrap()
+    }
+    #[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug)]
+    pub struct StringId(#[serde(deserialize_with = "str_to_id", serialize_with = "id_to_str")] u64);
+    impl StringId {
+        pub fn new(value: &str) -> Self {
+            Self(from(value))
+        }
+        pub fn value(&self) -> String {
+            get(&self.0).expect("key was inserted when creating instance")
+        }
+    }
+    fn str_to_id<'de, D>(deserializer: D) -> Result<u64, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let opt = String::deserialize(deserializer)?;
+
+        Ok(from(&opt))
+    }
+    fn id_to_str<D>(id: &u64, serializer: D) -> Result<D::Ok, D::Error>
+    where
+        D: serde::Serializer,
+    {
+        get(id).serialize(serializer)
+    }
+    fn from(value: &str) -> u64 {
+        let value = make_camel_case_from_kebab(value.to_lowercase());
+        let mut g = DefaultHasher::new();
+        value.hash(&mut g);
+        let id = g.finish();
+        insert(id, value);
+        id
+    }
+    fn make_camel_case_from_kebab(mut kebab: String) -> String {
+        fn capitalize_first_letter(mut name: String) -> String {
+            let first_letter = name.remove(0);
+            name.insert(0, first_letter.to_ascii_uppercase());
+            name
+        }
+        //replace the  `-`'s
+        while let Some(dash_pos) = kebab.find("-") {
+            kebab.remove(dash_pos);
+            let lower = kebab.remove(dash_pos);
+            kebab.insert(dash_pos, lower.to_ascii_uppercase());
+        }
+        capitalize_first_letter(kebab)
+    }
 }
 
-fn capitalize_first_letter(mut name: String) -> String {
-    let first_letter = name.remove(0);
-    name.insert(0, first_letter.to_ascii_uppercase());
-    name
-}
-
+use crate::data_types::string_id::StringId;
 macro_rules! string_new_type {
-    ($name:ident) => {
+    ($(#[$attributes:meta])*  $name:ident) => {
         #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
         #[derive(Clone, serde::Deserialize, PartialEq, Debug)]
-        // #[serde(rename_all = "kebab-case")]
-        pub struct $name(Box<str>);
+        #[serde(from="StringId",into="StringId")]
+        $(#[$attributes])*
+        pub struct $name(StringId);
         impl $name {
             pub fn new(s: &str) -> Self {
-                Self(make_camel_case_from_kebab(s.to_lowercase()).into())
+                Self::from(StringId::new(s))
             }
         }
         impl FromStr for $name {
@@ -56,14 +111,29 @@ macro_rules! string_new_type {
         }
         impl Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", &*self.0)
+                write!(f, "{}", self.0.value())
+            }
+        }
+        impl From<StringId> for $name{
+            fn from(value:StringId)->Self{
+                Self(value)
+            }
+        }
+        // impl Into<StringId> for $name{
+        //     fn into(self)->StringId{
+        //         self.0
+        //     }
+        // }
+        impl From<$name> for StringId{
+            fn from(value:$name)->StringId{
+                value.0
             }
         }
     };
 }
 
 string_new_type!(PokemonAbility);
-
+// #[serde(deserialize_with = "name_parser")]
 string_new_type!(PokemonName);
 string_new_type!(PokemonGenus);
 

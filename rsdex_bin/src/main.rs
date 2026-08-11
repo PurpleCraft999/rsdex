@@ -33,7 +33,7 @@ fn main() {
         search_result
             .write_data_to_file(&fp, detail_level, args.write_mode, args.pretty)
             .expect("something went wrong while saving your file");
-        println!("writing succesfull")
+        println!("writing successfull")
     } else {
         search_result.sort();
         search_result.print_data(detail_level);
@@ -52,7 +52,7 @@ struct RsdexArgs {
     write_mode: Option<WriteMode>,
     #[arg(long, requires = "file_path")]
     pretty: bool,
-    #[arg(long)]
+    #[arg(long, short)]
     help: bool,
 }
 include!(concat!(env!("OUT_DIR"), "/readme.rs"));

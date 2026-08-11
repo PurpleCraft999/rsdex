@@ -45,8 +45,7 @@ mod pokedex_tests {
 
     impl PokeDexMmap {
         fn get(&self, name: &str) -> Pokemon {
-            self.find_by_name(&name.try_into().unwrap())
-                .unwrap()
+            self.find_by_name(&name.try_into().unwrap()).unwrap()
         }
         fn id(&self, id: u16) -> Pokemon {
             self.find_by_natinal_dex_number(&id.try_into().unwrap())

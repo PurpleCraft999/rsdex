@@ -11,7 +11,7 @@ use crate::data_types::{
 #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
 #[derive(Deserialize, PartialEq, Debug, Clone)]
 pub struct Pokemon {
-    #[serde(deserialize_with = "name_parser")]
+    // #[serde(deserialize_with = "name_parser")]
     name: PokemonName,
     national_dex_number: NationalPokedexNumber,
     type1: PokemonType,
@@ -153,14 +153,6 @@ where
 {
     let opt = Option::deserialize(deserializer)?;
     Ok(opt.unwrap_or(N::null()))
-}
-fn name_parser<'de, D>(deserializer: D) -> Result<PokemonName, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    Ok(PokemonName::new(
-        &String::deserialize(deserializer).unwrap(),
-    ))
 }
 
 ///when string should be `none`
