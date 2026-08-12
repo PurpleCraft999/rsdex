@@ -41,8 +41,11 @@ impl WriteType {
                         serde_json::to_string(pkmap)?
                     };
                     json_string += (pokemon_string + ",").as_str();
+                    json_string.push('\n');
+
                 }
                 //removes the trailing comma
+                json_string.pop();
                 json_string.pop();
                 writer.write_all(json_string.as_bytes())?;
                 writer.write_all("]".as_bytes())?;
