@@ -6,7 +6,6 @@ use strum::{Display, EnumString};
 #[cfg(feature = "file_writing")]
 use crate::Pokemon;
 
-
 #[derive(Clone, Display, EnumString, Default)]
 #[strum(ascii_case_insensitive)]
 pub enum WriteType {

@@ -11,7 +11,7 @@ pub mod writing;
 
 #[cfg(feature = "file_writing")]
 pub use writing::WriteType;
-pub use {pokedex::MAX_POKEDEX_NUM, pokemon::Pokemon};
+pub use {pokedex::max_pokedex_number, pokemon::Pokemon};
 
 fn compute_similarity(string: &str, options: &[&str]) -> Vec<String> {
     options
@@ -33,7 +33,7 @@ fn str_to_range(input: &str) -> Result<Range<u16>, UselessError> {
     let (min, max) = input.split_at(input.find("..").unwrap());
     let min = min.parse::<u16>().unwrap();
     let max = max[2..].parse().unwrap();
-    if min >= max || max > MAX_POKEDEX_NUM || min < 1 {
+    if min >= max || max > max_pokedex_number() || min < 1 {
         return Err(UselessError);
     }
     Ok(min - 1..max + 1)

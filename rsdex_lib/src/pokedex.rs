@@ -127,18 +127,38 @@ impl Default for PokedexSearchResult {
     }
 }
 
-pub const MAX_POKEDEX_NUM: u16 = 1025;
-include!(concat!(env!("OUT_DIR"), "/pokedex_data.rs"));
+// pub const MAX_POKEDEX_NUM: u16 = 1025;
+pub fn get_pokedex_data() -> Vec<u8> {
+    #[cfg(all(debug_assertions, not(test)))]
+    {
+        std::fs::read("rsdex_lib/pokedex.jsonl").expect("file should be there for debugging")
+    }
+    #[cfg(any(test, not(debug_assertions)))]
+    {
+        // println!("{:?}",std::env::current_dir());
+        std::fs::read(std::env::current_dir().unwrap().join("pokedex.jsonl"))
+            .expect("file should exist for testing")
+    }
+    // #[cfg(all(not(debug_assertions),not(test)))]
+    // {
+
+    // }
+}
+pub fn max_pokedex_number() -> u16 {
+    String::from_utf8(get_pokedex_data())
+        .expect("file is utf-8 encoded")
+        .lines()
+        .count() as u16
+}
 
 pub struct PokeDexMmap {
     mmap: Mmap,
 }
 impl PokeDexMmap {
     pub fn new() -> Result<Self, std::io::Error> {
-        let mut mmap = memmap2::MmapOptions::new()
-            .len(POKEDEX_DATA.len())
-            .map_anon()?;
-        mmap.copy_from_slice(&POKEDEX_DATA);
+        let data = get_pokedex_data();
+        let mut mmap = memmap2::MmapOptions::new().len(data.len()).map_anon()?;
+        mmap.copy_from_slice(&data);
         let mmap = mmap.make_read_only()?;
         Ok(Self { mmap })
     }

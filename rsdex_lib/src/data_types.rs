@@ -1,6 +1,5 @@
 use std::{cmp::Ordering, fmt::Display, hash::Hash, num::ParseIntError, str::FromStr};
 
-use crate::MAX_POKEDEX_NUM;
 use crate::pokemon::Nullable;
 use serde::Deserialize;
 use strum::{Display, EnumString, VariantNames};
@@ -326,7 +325,7 @@ pub enum BodyShape {
 pub struct NationalPokedexNumber(u16);
 impl NationalPokedexNumber {
     pub fn new(dex_num: u16) -> Result<Self, InvalidDexNum> {
-        if (1..=MAX_POKEDEX_NUM).contains(&dex_num) {
+        if (1..=crate::max_pokedex_number()).contains(&dex_num) {
             Ok(Self(dex_num))
         } else {
             Err(InvalidDexNum)

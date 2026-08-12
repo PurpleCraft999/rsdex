@@ -3,13 +3,23 @@ use std::{path::PathBuf, str::FromStr as _};
 use clap::{Parser, value_parser};
 use pulldown_cmark::{Event, HeadingLevel, Tag, TagEnd};
 use rsdex_lib::{
+    max_pokedex_number,
     pokedex::{PokeDexMmap, Pokedex},
     search::KeyWord,
-    writing::WriteType
+    writing::WriteType,
 };
 
 fn main() {
     let args = RsdexArgs::parse();
+
+    if let Some(other) = args.other {
+        match other {
+            OtherCommands::AmountOfPokemon => println!("{}", max_pokedex_number()),
+        }
+
+        return;
+    }
+
     let detail_level = args.detailed;
     let pokedex = match PokeDexMmap::new() {
         Ok(dex) => dex,
@@ -59,7 +69,7 @@ fn main() {
                 args.pretty,
             )
             .expect("something went wrong while saving your file");
-        println!("writing successfull")
+        println!("writing successful")
     } else {
         search_result.sort();
         search_result.print_data(detail_level);
@@ -74,12 +84,14 @@ struct RsdexArgs {
     detailed: u8,
     #[arg(long, aliases(["fp","filepath"]),short('p'))]
     file_path: Option<PathBuf>,
-    #[arg(long, requires = "file_path")]
+    #[arg(long, requires = "file_path",aliases(["mode"]))]
     write_mode: Option<WriteType>,
     #[arg(long, requires = "file_path")]
     pretty: bool,
-    #[arg(long, short)]
+    #[arg(long, short, exclusive(true))]
     help: bool,
+    #[command(subcommand)]
+    other: Option<OtherCommands>,
 }
 include!(concat!(env!("OUT_DIR"), "/readme.rs"));
 fn print_read_me() {
@@ -113,3 +125,16 @@ fn print_read_me() {
     }
     println!()
 }
+#[derive(clap::clap_derive::Subcommand, Clone)]
+enum OtherCommands {
+    #[command(name = "amount", alias = "amount_of_pokemon")]
+    AmountOfPokemon,
+}
+// #[command(group(ArgGroup::new("others").args(["amount_of_pokemon","test"])))]
+// struct OtherCommands{
+//     #[arg(long,alias("amount"))]
+//     amount_of_pokemon:bool,
+//     #[arg(long)]
+//     test:bool
+
+// }
