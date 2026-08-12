@@ -37,7 +37,7 @@ fn main() {
     }
 
     let search_queries =
-        KeyWord::parse(&mut args.search_queries.into_iter()).expect("paring failed");
+        KeyWord::parse(&mut args.search_queries.into_iter()).expect("parsing failed");
     let mut search_result = pokedex.search_many(search_queries);
 
     if let Some(fp) = args.file_path {
