@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::range::Range;
 use std::str::FromStr;
 use strum::{Display, VariantNames};
 

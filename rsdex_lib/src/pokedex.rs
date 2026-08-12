@@ -16,7 +16,7 @@ use std::{
     collections::HashSet,
 
     io::BufRead,
-    ops::Range,
+    range::Range,
 };
 
 pub type SingleSearchReturn = Option<Pokemon>;

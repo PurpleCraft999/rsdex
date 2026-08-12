@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::range::Range;
 
 use strsim::damerau_levenshtein;
 
@@ -26,21 +26,22 @@ fn compute_similarity(string: &str, options: &[&str]) -> Vec<String> {
         .collect()
 }
 
-fn str_to_range(input: &str) -> Result<Range<u16>, UselessError> {
+fn str_to_range(input: &str) -> Result<Range<u16>, RangeParseError> {
     //zero is not a valid input for this case
     if !input.contains("..") || !input.contains(['1', '2', '3', '4', '5', '6', '7', '8', '9']) {
-        return Err(UselessError);
+        return Err(RangeParseError);
     }
     let (min, max) = input.split_at(input.find("..").unwrap());
     let min = min.parse::<u16>().unwrap();
     let max = max[2..].parse().unwrap();
     if min >= max || max > max_pokedex_number() || min < 1 {
-        return Err(UselessError);
+        return Err(RangeParseError);
     }
-    Ok(min - 1..max + 1)
+    
+    Ok(Range::from(min - 1..max + 1))
 }
 
-struct UselessError;
+struct RangeParseError;
 
 #[cfg(test)]
 mod pokedex_tests {
@@ -247,7 +248,7 @@ mod parsing {
     }
     #[test]
     fn test_range_parse() -> TestResult {
-        SearchQuery::parses_to(SearchQueryParsing::Range, "1..4", SearchQuery::Range(0..5))
+        SearchQuery::parses_to(SearchQueryParsing::Range, "1..4", SearchQuery::Range(std::range::Range::from(0..5)))
     }
     #[test]
     fn test_type_parse() -> TestResult {
