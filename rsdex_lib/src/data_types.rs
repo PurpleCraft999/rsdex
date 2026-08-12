@@ -3,71 +3,8 @@ use std::{cmp::Ordering, fmt::Display, hash::Hash, num::ParseIntError, str::From
 use crate::pokemon::Nullable;
 use serde::Deserialize;
 use strum::{Display, EnumString, VariantNames};
-mod string_id {
-    use std::{
-        collections::HashMap,
-        hash::{DefaultHasher, Hash, Hasher},
-        sync::{LazyLock, Mutex},
-    };
 
-    use serde::{Deserialize, Serialize};
-    static ID_MAP: LazyLock<Mutex<HashMap<u64, String>>> =
-        LazyLock::new(|| Mutex::new(HashMap::new()));
-    fn insert(id: u64, value: String) {
-        ID_MAP.lock().map(|mut m| m.insert(id, value)).unwrap();
-    }
-    fn get(id: &u64) -> Option<String> {
-        ID_MAP.lock().map(|m| m.get(id).cloned()).unwrap()
-    }
-    #[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug)]
-    pub struct StringId(#[serde(deserialize_with = "str_to_id", serialize_with = "id_to_str")] u64);
-    impl StringId {
-        pub fn new(value: &str) -> Self {
-            Self(from(value))
-        }
-        pub fn value(&self) -> String {
-            get(&self.0).expect("key was inserted when creating instance")
-        }
-    }
-    fn str_to_id<'de, D>(deserializer: D) -> Result<u64, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let opt = String::deserialize(deserializer)?;
-
-        Ok(from(&opt))
-    }
-    fn id_to_str<D>(id: &u64, serializer: D) -> Result<D::Ok, D::Error>
-    where
-        D: serde::Serializer,
-    {
-        get(id).serialize(serializer)
-    }
-    fn from(value: &str) -> u64 {
-        let value = make_camel_case_from_kebab(value.to_lowercase());
-        let mut g = DefaultHasher::new();
-        value.hash(&mut g);
-        let id = g.finish();
-        insert(id, value);
-        id
-    }
-    fn make_camel_case_from_kebab(mut kebab: String) -> String {
-        fn capitalize_first_letter(mut name: String) -> String {
-            let first_letter = name.remove(0);
-            name.insert(0, first_letter.to_ascii_uppercase());
-            name
-        }
-        //replace the  `-`'s
-        while let Some(dash_pos) = kebab.find("-") {
-            kebab.remove(dash_pos);
-            let lower = kebab.remove(dash_pos);
-            kebab.insert(dash_pos, lower.to_ascii_uppercase());
-        }
-        capitalize_first_letter(kebab)
-    }
-}
-
-use crate::data_types::string_id::StringId;
+use crate::string_id::StringId;
 macro_rules! string_new_type {
     ($(#[$attributes:meta])*  $name:ident) => {
         #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]

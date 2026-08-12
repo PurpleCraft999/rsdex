@@ -42,7 +42,6 @@ impl WriteType {
                     };
                     json_string += (pokemon_string + ",").as_str();
                     json_string.push('\n');
-
                 }
                 //removes the trailing comma
                 json_string.pop();

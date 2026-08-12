@@ -6,6 +6,7 @@ pub mod data_types;
 pub mod pokedex;
 pub mod pokemon;
 pub mod search;
+mod string_id;
 #[cfg(feature = "file_writing")]
 pub mod writing;
 
