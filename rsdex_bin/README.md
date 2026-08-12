@@ -7,41 +7,41 @@ everything is case insensitive
 
 
 ### Dex and Name
-`rsdex 1` which will return bulbasaur's pokedex entry or
-`rsdex bulbasaur` witch will also return bulbasaur pokedex info
+`rsdex num:1` which will return bulbasaur's pokedex entry or
+`rsdex name:bulbasaur` witch will also return bulbasaur pokedex info
 if the pokemon has a space in the name replace it with a `-` 
 
 
 ### Type and Color
-`rsdex fire` to get all fire type pokemon or
-`rsdex blue` to get all the blue pokemon
+`rsdex type:fire` to get all fire type pokemon or
+`rsdex color:blue` to get all the blue pokemon
 
 ### Stat
 To filter by stat you append the stat you want to the end such as 
-`rsdex 20hp` for Health
-`rsdex 20a` for Attack
-`rsdex 20d` for Defence
-`rsdex 20sa` for Special Attack
-`rsdex 20sd` for Special Defence
-`rsdex 20s` for Speed
+`rsdex stat:20hp` for Health
+`rsdex stat:20a` for Attack
+`rsdex stat:20d` for Defence
+`rsdex stat:20sa` for Special Attack
+`rsdex stat:20sd` for Special Defence
+`rsdex stat:20s` for Speed
 
 you can also do get stats with ≤ or ≥ the stat value by adding `l` or `g` to the begaining
 
-`rsdex g100hp` returns all pokemon with ≥ 100 hp
+`rsdex stat:g100hp` returns all pokemon with ≥ 100 hp
 
-`rsdex l50s` returns all pokemon with ≤ 50 speed
+`rsdex stat:l50s` returns all pokemon with ≤ 50 speed
 
 
 
 ### Egg Group
 for the egg groups that share a name with types add egg to the end
 
-`rsdex field` for pokemon in the field egg group
-`rsdex fairyegg` for the fairy egg group
+`rsdex egg:field` for pokemon in the field egg group
+`rsdex egg:fairyegg` for the fairy egg group
 
 ### Range
 if you need the pokemon between say 50 and 100 you can do that with
-<code>rsdex 50..100</code>
+<code>rsdex range:50..100</code>
 it accepts numbers  1 ≤ n ≤ max pokedex number
 
 ### Abilities
@@ -75,7 +75,7 @@ it accepts numbers  1 ≤ n ≤ max pokedex number
 
 ### Writing to file
 
-when you do `rsdex red --fp "red_pokemon.json"` it will save the reasults to the specified file path
+when you do `rsdex color:red --fp red_pokemon.json` it will save the reasults to the specified file path
 you can also add the --write_mode write mode to the end of it to change the write mode to another type
 it also takes into acount the level of detail set 
 the pretty flag is set the write will be pretty if available
