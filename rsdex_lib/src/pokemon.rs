@@ -11,6 +11,7 @@ use crate::data_types::{
 #[cfg_attr(feature = "file_writing", derive(serde::Serialize))]
 #[derive(Deserialize, PartialEq, Debug, Clone)]
 pub struct Pokemon {
+    // #[serde(deserialize_with = "name_parser")]
     name: PokemonName,
     national_dex_number: NationalPokedexNumber,
     type1: PokemonType,
@@ -74,12 +75,7 @@ impl Pokemon {
     }
 
     pub fn get_as_map(&self, detail_level: u8) -> HashMap<&str, String> {
-        let vec = self.get_as_vec(detail_level);
-        let mut map = HashMap::with_capacity(vec.len());
-        for (k, v) in vec {
-            map.insert(k, v);
-        }
-        map
+        HashMap::from_iter(self.get_as_vec(detail_level))
     }
 
     pub fn get_display(&self, detail_level: u8) -> String {
@@ -153,6 +149,7 @@ where
     let opt = Option::deserialize(deserializer)?;
     Ok(opt.unwrap_or(N::null()))
 }
+
 ///when string should be `none`
 pub trait Nullable<'de>: Deserialize<'de> {
     fn null() -> Self;

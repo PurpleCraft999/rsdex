@@ -2,7 +2,7 @@
 name = "rsdex_bin"
 license = "MIT"
 edition.workspace = true
-version = "0.1.88"
+version = "0.2.0"
 repository.workspace = true
 authors.workspace = true
 readme = "README.md"

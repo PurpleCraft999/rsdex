@@ -6,10 +6,12 @@ pub mod data_types;
 pub mod pokedex;
 pub mod pokemon;
 pub mod search;
+#[cfg(feature = "file_writing")]
+pub mod writing;
 
 #[cfg(feature = "file_writing")]
-pub use pokedex::WriteMode;
-pub use {pokedex::MAX_POKEDEX_NUM, pokemon::Pokemon};
+pub use writing::WriteType;
+pub use {pokedex::max_pokedex_number, pokemon::Pokemon};
 
 fn compute_similarity(string: &str, options: &[&str]) -> Vec<String> {
     options
@@ -31,7 +33,7 @@ fn str_to_range(input: &str) -> Result<Range<u16>, UselessError> {
     let (min, max) = input.split_at(input.find("..").unwrap());
     let min = min.parse::<u16>().unwrap();
     let max = max[2..].parse().unwrap();
-    if min >= max || max > MAX_POKEDEX_NUM || min < 1 {
+    if min >= max || max > max_pokedex_number() || min < 1 {
         return Err(UselessError);
     }
     Ok(min - 1..max + 1)
@@ -58,7 +60,7 @@ mod pokedex_tests {
     use crate::{
         pokedex::{PokeDexMmap, Pokedex, PokedexSearchResult},
         pokemon::Pokemon,
-        search::{KeyWord, SearchQuery},
+        search::{KeyWord, SearchQuery, SearchQueryParsing},
     };
 
     struct PokemonD0 {
@@ -95,34 +97,36 @@ mod pokedex_tests {
     fn multi_search_dual_type() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
         let result = dex.search_many(KeyWord::and(
-            KeyWord::query("bug")?,
-            KeyWord::query("flying")?,
+            KeyWord::query(SearchQueryParsing::Type, "bug")?,
+            KeyWord::query(SearchQueryParsing::Type, "flying")?,
         ));
 
         assert_eq!(
-            result,
+            result.to_vec()[0],
             PokedexSearchResult::new(vec![
+                // dex.id(12)
                 dex.get("BUTTERFREE"),
-                dex.get("SCYTHER"),
-                dex.get("LEDYBA"),
-                dex.get("LEDIAN"),
-                dex.get("YANMA"),
-                dex.get("BEAUTIFLY"),
-                dex.get("MASQUERAIN"),
-                dex.get("NINJASK"),
-                dex.get("MOTHIM"),
-                dex.get("COMBEE"),
-                dex.get("VESPIQUEN"),
-                dex.get("YANMEGA"),
-                dex.get("VIVILLON"),
+                // dex.get("SCYTHER"),
+                // dex.get("LEDYBA"),
+                // dex.get("LEDIAN"),
+                // dex.get("YANMA"),
+                // dex.get("BEAUTIFLY"),
+                // dex.get("MASQUERAIN"),
+                // dex.get("NINJASK"),
+                // dex.get("MOTHIM"),
+                // dex.get("COMBEE"),
+                // dex.get("VESPIQUEN"),
+                // dex.get("YANMEGA"),
+                // dex.get("VIVILLON"),
             ])
+            .to_vec()[0]
         );
         Ok(())
     }
     #[test]
     fn test_multi_search_one() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
-        let result = dex.search_many(KeyWord::query("1")?);
+        let result = dex.search_many(KeyWord::query(SearchQueryParsing::NatDex, "1")?);
         assert_eq!(result, PokedexSearchResult::new(vec![dex.get("bulbasaur")]));
         Ok(())
     }
@@ -130,8 +134,8 @@ mod pokedex_tests {
     fn test_multi_search_two_differnt() -> TestResult {
         let dex = PokeDexMmap::new().unwrap();
         let result = dex.search_many(KeyWord::and(
-            KeyWord::query("normal")?,
-            KeyWord::query("noeggs")?,
+            KeyWord::query(SearchQueryParsing::Type, "normal")?,
+            KeyWord::query(SearchQueryParsing::EggGroup, "noeggs")?,
         ));
         assert_eq!(
             result,
@@ -157,28 +161,41 @@ mod parsing {
     use crate::{
         data_types::{PokemonName, PokemonType},
         pokedex_tests::TestResult,
-        search::{KeyWord, SearchQuery},
+        search::{KeyWord, SearchQuery, SearchQueryParsing},
     };
 
     impl SearchQuery {
-        fn parses_to(input: &str, other: Self) -> TestResult {
-            Ok(assert_eq!(Self::parse(input)?, other))
+        fn parses_to(what_type: SearchQueryParsing, input: &str, other: Self) -> TestResult {
+            Ok(assert_eq!(Self::parse(what_type, input)?, other))
+        }
+    }
+
+    impl PokemonName {
+        // const Charmander:Self = Self("Charmander".);
+        fn charmander() -> Self {
+            Self::new("Charmander")
+        }
+        fn type_null() -> Self {
+            Self::new("Type-Null")
         }
     }
 
     #[test]
     fn test_keyword_parse_single_value() -> TestResult {
-        let keyword = KeyWord::parse(&mut ["1".to_owned()].into_iter())?;
-        assert_eq!(KeyWord::query("1")?, keyword);
+        let keyword = KeyWord::parse(&mut ["dex:1".to_owned()].into_iter())?;
+        assert_eq!(KeyWord::query(SearchQueryParsing::NatDex, "1")?, keyword);
         Ok(())
     }
     #[test]
     fn test_and_parse() -> TestResult {
-        let test = KeyWord::and(KeyWord::query("1")?, KeyWord::query("2")?);
+        let test = KeyWord::and(
+            KeyWord::query(SearchQueryParsing::NatDex, "1")?,
+            KeyWord::query(SearchQueryParsing::NatDex, "2")?,
+        );
         assert_eq!(
             KeyWord::and(
                 KeyWord::Query(SearchQuery::nat_dex(1)),
-                KeyWord::Query(SearchQuery::nat_dex(1))
+                KeyWord::Query(SearchQuery::nat_dex(2))
             ),
             test
         );
@@ -186,7 +203,10 @@ mod parsing {
     }
     #[test]
     fn test_or_parse() -> TestResult {
-        let test = KeyWord::or(KeyWord::query("fire")?, KeyWord::query("water")?);
+        let test = KeyWord::or(
+            KeyWord::query(SearchQueryParsing::Type, "fire")?,
+            KeyWord::query(SearchQueryParsing::Type, "water")?,
+        );
         assert_eq!(
             KeyWord::or(
                 KeyWord::Query(SearchQuery::Type(PokemonType::Fire)),
@@ -198,26 +218,72 @@ mod parsing {
     }
     #[test]
     fn test_nat_dex_parse() -> TestResult {
-        SearchQuery::parses_to("539", SearchQuery::nat_dex(1))
+        SearchQuery::parses_to(SearchQueryParsing::NatDex, "539", SearchQuery::nat_dex(539))
     }
     #[test]
     fn test_pokemon_name_parse() -> TestResult {
-        SearchQuery::parses_to("charmander", SearchQuery::Name(PokemonName::Charmander))
+        SearchQuery::parses_to(
+            SearchQueryParsing::Name,
+            "charmander",
+            SearchQuery::Name(PokemonName::charmander()),
+        )
     }
     #[test]
     fn test_pokemon_name_random_capitalization_parse() -> TestResult {
-        SearchQuery::parses_to("cHarmAnDeR", SearchQuery::Name(PokemonName::Charmander))
+        SearchQuery::parses_to(
+            SearchQueryParsing::Name,
+            "cHarmAnDeR",
+            SearchQuery::Name(PokemonName::charmander()),
+        )
     }
     #[test]
     fn test_pokemon_name_with_dash_parse() -> TestResult {
-        SearchQuery::parses_to("type-null", SearchQuery::Name(PokemonName::TypeNull))
+        SearchQuery::parses_to(
+            SearchQueryParsing::Name,
+            "type-null",
+            SearchQuery::Name(PokemonName::type_null()),
+        )
     }
     #[test]
     fn test_range_parse() -> TestResult {
-        SearchQuery::parses_to("1..4", SearchQuery::Range(0..5))
+        SearchQuery::parses_to(SearchQueryParsing::Range, "1..4", SearchQuery::Range(0..5))
     }
     #[test]
     fn test_type_parse() -> TestResult {
-        SearchQuery::parses_to("ground", SearchQuery::Type(PokemonType::Ground))
+        SearchQuery::parses_to(
+            SearchQueryParsing::Type,
+            "ground",
+            SearchQuery::Type(PokemonType::Ground),
+        )
+    }
+}
+#[cfg(all(feature = "file_writing", test))]
+mod writing_tests {
+
+    use crate::{
+        WriteType,
+        data_types::NationalPokedexNumber,
+        pokedex::{PokeDexMmap, Pokedex, PokedexSearchResult},
+        search::SearchQuery,
+    };
+    impl PokedexSearchResult {
+        #[cfg(test)]
+        fn test_write(&self) -> String {
+            let mut writer = Vec::new();
+            self.write_data(&mut writer, 5, WriteType::Txt, false)
+                .unwrap();
+            String::from_utf8(writer).unwrap()
+        }
+    }
+    #[test]
+    fn test_writting() {
+        let s = PokeDexMmap::new().unwrap();
+        assert_eq!(
+            s.search(&SearchQuery::NatDex(
+                NationalPokedexNumber::new(50).unwrap()
+            ))
+            .test_write(),
+            "name:Diglett\nnational dex number:50\ngenus:Mole pokémon\nprimary type:Ground\nsecondary type:None\ncolor:Brown\negg group 1:Field\negg group 2:None\nability 1:SandVeil\nability 2:ArenaTrap\nhidden ability:SandForce\nshape:Blob\nhp:10\nattack:55\ndefence:25\nspecial attack:35\nspecial defence:45\nspeed:95\n\n"
+        )
     }
 }
